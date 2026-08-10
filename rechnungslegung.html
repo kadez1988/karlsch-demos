@@ -1,0 +1,1842 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beispiel GmbH — Rechnungs-Cockpit (Vorschau)</title>
+<style>
+  .ksrl-root, .ksrl-root * { box-sizing:border-box; margin:0; padding:0; }
+  .ksrl-root {
+    font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+    font-size:14px; line-height:1.5;
+    color:#1f1f1f; background:#faf7f4; -webkit-font-smoothing:antialiased;
+  }
+  html, body { background:#faf7f4; }
+  .ksrl-root button, .ksrl-root input, .ksrl-root select, .ksrl-root textarea { font:inherit; color:inherit; }
+
+  /* ---------- Hero ---------- */
+  .ksrl-hero {
+    position:relative; overflow:hidden;
+    background: radial-gradient(ellipse 70% 95% at 100% 116%, #EA591E 0%, #8B2E10 34%, #331613 70%);
+    color:#E0DDD8; padding:26px 40px 22px;
+  }
+  .ksrl-hero-inner { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .ksrl-hero-text { flex:1 1 320px; min-width:220px; }
+  .ksrl-hero-title { font-size:22px; font-weight:700; letter-spacing:-.01em; }
+  .ksrl-hero-sub { font-size:12.5px; opacity:.85; margin-top:3px; letter-spacing:.02em; }
+  .ksrl-disclaimer {
+    margin-top:14px; background:rgba(224,221,216,.14); border:1px solid rgba(224,221,216,.35);
+    border-radius:10px; padding:10px 14px; font-size:12.5px; line-height:1.5; color:#E0DDD8;
+  }
+  .ksrl-disclaimer b { color:#F4A876; }
+  .ksrl-disclaimer > summary { cursor:pointer; list-style:none; }
+  .ksrl-disclaimer > summary::-webkit-details-marker { display:none; }
+  .ksrl-disclaimer > summary .mehr { color:#F4A876; text-decoration:underline; white-space:nowrap; }
+  .ksrl-disclaimer[open] > summary .mehr { display:none; }
+  .ksrl-disclaimer .rest { margin-top:6px; }
+
+  /* ---------- Layout ---------- */
+  /* min-width:0 auf beiden Grid-Kindern — sonst sprengt die Nav-Leiste im Mobil-Layout
+     (7 Buttons nebeneinander) die Spalte auf und die ganze Seite scrollt horizontal. */
+  .ksrl-app { display:grid; grid-template-columns:220px 1fr; align-items:stretch; }
+  .ksrl-app > * { min-width:0; }
+  .ksrl-sidebar { background:#331613; color:#fff; padding:24px 0; display:flex; flex-direction:column; min-width:0; }
+  .ksrl-brand { padding:0 24px 20px; border-bottom:1px solid rgba(224,221,216,.2); margin-bottom:14px; display:flex; align-items:center; gap:12px; }
+  .ksrl-logo-box { width:32px; height:32px; background:#ea591e; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; font-size:18px; flex:0 0 auto; }
+  .ksrl-brand .name { font-weight:700; font-size:14px; }
+  .ksrl-brand .sub { font-size:11px; color:#bfb2ac; }
+  .ksrl-nav { display:flex; flex-direction:column; }
+  .ksrl-nav button {
+    background:none; border:none; text-align:left; padding:10px 24px; color:#d6cbc6;
+    cursor:pointer; font-size:14px; border-left:3px solid transparent; transition:all .15s; white-space:nowrap;
+  }
+  .ksrl-nav button:hover { background:#42211d; color:#fff; }
+  .ksrl-nav button.active { background:#42211d; color:#ea591e; border-left-color:#ea591e; font-weight:600; }
+  .ksrl-side-footer { margin-top:auto; padding:16px 24px 0; font-size:11px; color:#bfb2ac; border-top:1px solid rgba(224,221,216,.2); }
+  .ksrl-side-footer #ksrl-naechste-nr { margin-top:12px; }
+  .ksrl-reset {
+    margin-top:10px; background:none; border:1px solid rgba(224,221,216,.35); color:#d6cbc6;
+    border-radius:6px; padding:5px 9px; font-size:11px; cursor:pointer;
+  }
+  .ksrl-reset:hover { background:#42211d; color:#fff; }
+
+  .ksrl-main { padding:28px 36px 44px; min-width:0; }
+  .ksrl-main h1 { font-size:22px; margin-bottom:4px; }
+  .ksrl-subtitle { color:#707070; margin-bottom:22px; font-size:13px; }
+  .ksrl-view { display:none; }
+  .ksrl-view.active { display:block; }
+  .ksrl-h2 { margin:26px 0 12px; font-size:16px; }
+  .ksrl-h3sec { font-size:14px; margin:24px 0 12px; color:#707070; text-transform:uppercase; letter-spacing:.5px; }
+
+  /* ---------- Cards ---------- */
+  .ksrl-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px; }
+  .ksrl-card { background:#fff; border-radius:8px; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04); border-top:3px solid #ea591e; }
+  .ksrl-card .label { font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:#707070; margin-bottom:8px; }
+  .ksrl-card .value { font-size:24px; font-weight:700; color:#1f1f1f; }
+  .ksrl-card .sub { font-size:12px; color:#707070; margin-top:4px; }
+  .ksrl-card.green { border-top-color:#2e7d32; } .ksrl-card.green .value { color:#2e7d32; }
+  .ksrl-card.yellow { border-top-color:#f9a825; } .ksrl-card.yellow .value { color:#f9a825; }
+  .ksrl-card.red { border-top-color:#c62828; } .ksrl-card.red .value { color:#c62828; }
+
+  /* ---------- Toolbar / Buttons ---------- */
+  .ksrl-toolbar { display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .ksrl-toolbar input[type="text"], .ksrl-toolbar input[type="email"], .ksrl-toolbar input[type="date"], .ksrl-toolbar select {
+    padding:8px 12px; border:1px solid #d8d2cc; border-radius:6px; background:#fff; font-size:13px; min-width:140px;
+  }
+  .ksrl-toolbar input:focus, .ksrl-toolbar select:focus { outline:none; border-color:#ea591e; }
+  .ksrl-grow { flex:1; }
+  .ksrl-inline-lbl { display:flex; gap:6px; align-items:center; font-size:13px; color:#707070; }
+
+  .ksrl-btn { background:#ea591e; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; transition:background .15s; }
+  .ksrl-btn:hover { background:#c14710; }
+  .ksrl-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .ksrl-btn.secondary { background:#fff; color:#1f1f1f; border:1px solid #d8d2cc; }
+  .ksrl-btn.secondary:hover { background:#f8f5f2; }
+  .ksrl-btn.danger { background:#c62828; } .ksrl-btn.danger:hover { background:#a01818; }
+  .ksrl-btn.green { background:#2e7d32; } .ksrl-btn.green:hover { background:#1f5c23; }
+  .ksrl-btn.small { padding:4px 10px; font-size:12px; }
+
+  /* ---------- Tables ---------- */
+  .ksrl-tablewrap { overflow-x:auto; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04); background:#fff; }
+  .ksrl-table { width:100%; background:#fff; border-collapse:collapse; }
+  .ksrl-table thead th {
+    background:#f8f5f2; text-align:left; padding:10px 14px; font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.5px; color:#707070; border-bottom:1px solid #d8d2cc; white-space:nowrap;
+  }
+  .ksrl-table thead th.sortable { cursor:pointer; user-select:none; }
+  .ksrl-table thead th.sortable::after { content:" ⇕"; opacity:.4; font-size:9px; }
+  .ksrl-table thead th.sort-asc::after { content:" ▲"; opacity:1; }
+  .ksrl-table thead th.sort-desc::after { content:" ▼"; opacity:1; }
+  .ksrl-table tbody td { padding:12px 14px; border-bottom:1px solid #d8d2cc; font-size:13px; }
+  .ksrl-table tbody tr:last-child td { border-bottom:none; }
+  .ksrl-table tbody tr.clickable:hover { background:#f8f5f2; cursor:pointer; }
+  .ksrl-table.compact thead th, .ksrl-table.compact tbody td { padding-left:9px; padding-right:9px; }
+  .ksrl-table .num { text-align:right; white-space:nowrap; }
+  .ksrl-table .id { font-family:"Courier New", monospace; color:#ea591e; font-weight:700; white-space:nowrap; }
+
+  /* ---------- Badges ---------- */
+  .ksrl-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; }
+  .ksrl-badge.offen { background:#fff8e1; color:#f9a825; }
+  .ksrl-badge.bezahlt { background:#e8f5e9; color:#2e7d32; }
+  .ksrl-badge.ze { background:#e3f2fd; color:#1565c0; }
+  .ksrl-badge.m1 { background:#fce4ec; color:#c2185b; }
+  .ksrl-badge.m2 { background:#ffebee; color:#c62828; }
+  .ksrl-badge.inkasso { background:#c62828; color:#fff; }
+  .ksrl-badge.storniert { background:#eee; color:#666; }
+  .ksrl-badge.ueberfaellig { background:#c62828; color:#fff; }
+  .ksrl-badge.aktiv { background:#e8f5e9; color:#2e7d32; }
+
+  /* ---------- Forms ---------- */
+  .ksrl-form-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px 18px; }
+  .ksrl-form-grid .full { grid-column:1 / -1; }
+  .ksrl-field { display:flex; flex-direction:column; gap:4px; }
+  .ksrl-field label { font-size:12px; color:#707070; font-weight:500; }
+  .ksrl-field input, .ksrl-field select, .ksrl-field textarea {
+    padding:8px 12px; border:1px solid #d8d2cc; border-radius:6px; background:#fff; font-size:14px; width:100%;
+  }
+  .ksrl-field input:focus, .ksrl-field select:focus, .ksrl-field textarea:focus { outline:none; border-color:#ea591e; }
+  .ksrl-hint { font-size:11px; color:#707070; }
+  .ksrl-check { display:flex; gap:8px; align-items:center; font-size:13px; }
+
+  .ksrl-poslist { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .ksrl-pos-row { display:grid; grid-template-columns:2fr 1fr 1fr 1fr 32px; gap:8px; align-items:center; }
+  .ksrl-pos-row input { padding:6px 10px; border:1px solid #d8d2cc; border-radius:5px; font-size:13px; width:100%; }
+  .ksrl-pos-row .pos-summe { background:#f8f5f2; border-color:transparent; text-align:right; font-weight:700; }
+  .ksrl-pos-row .pos-del { background:none; border:none; cursor:pointer; color:#c62828; font-size:18px; line-height:1; }
+  .ksrl-pos-head { display:grid; grid-template-columns:2fr 1fr 1fr 1fr 32px; gap:8px; font-size:11px; color:#707070; text-transform:uppercase; letter-spacing:.5px; margin-top:10px; }
+
+  .ksrl-summen { margin-top:14px; padding:12px 16px; background:#f8f5f2; border-radius:6px; border-left:3px solid #ea591e; }
+  .ksrl-summen div { display:flex; justify-content:space-between; padding:2px 0; font-size:13px; }
+  .ksrl-summen div.brutto { border-top:1px solid #d8d2cc; margin-top:6px; padding-top:8px; font-size:15px; font-weight:700; }
+
+  /* ---------- Detail-Panel ---------- */
+  .ksrl-panel { background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04); overflow:hidden; }
+  .ksrl-panel-head { padding:16px 22px; border-bottom:1px solid #d8d2cc; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .ksrl-panel-head h2 { font-size:18px; }
+  .ksrl-panel-body { padding:22px; }
+  .ksrl-aktionen { display:flex; gap:10px; margin:0 0 18px; flex-wrap:wrap; }
+  .ksrl-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .ksrl-detail-block h3 { font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:#707070; margin-bottom:8px; font-weight:600; }
+  .ksrl-detail-block .row { display:flex; justify-content:space-between; gap:12px; padding:4px 0; font-size:13px; border-bottom:1px dotted #d8d2cc; }
+  .ksrl-detail-block .row span:first-child { color:#707070; }
+  .ksrl-detail-block .row span:last-child { font-weight:500; text-align:right; }
+
+  /* ---------- A4-Faksimile ---------- */
+  .sm-only, .sm-only-inline { display:none; }
+  .ksrl-fak-wrap { margin-top:20px; border:1px solid #d8d2cc; border-radius:6px; background:#e9e5e0; padding:12px; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; }
+  .ksrl-fak-scaler { position:relative; }
+  .ksrl-fak {
+    width:794px; height:1123px; background:#fff; padding:45px 68px 113px; position:relative;
+    transform-origin:top left; font-size:12.7px; line-height:1.4; color:#1f1f1f;
+    box-shadow:0 2px 10px rgba(0,0,0,.12); display:flex; flex-direction:column;
+  }
+  .ksrl-fak .fak-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:19px; }
+  .ksrl-fak .fak-mark { width:60px; height:60px; border-radius:12px; background:#f8f5f2; border:1px solid #d8d2cc; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:700; color:#ea591e; }
+  .ksrl-fak .fak-head-right { text-align:right; }
+  .ksrl-fak .fak-head-name { font-size:17.3px; font-weight:700; color:#ea591e; line-height:1.2; }
+  .ksrl-fak .fak-head-slogan { font-size:12.7px; margin-top:3px; }
+  .ksrl-fak .fak-empf { margin:8px 0 15px; }
+  .ksrl-fak .fak-adresszeile { font-size:10px; color:#707070; margin-bottom:9px; border-bottom:1px solid #707070; padding-bottom:2px; display:inline-block; }
+  .ksrl-fak .fak-empf .firma { font-weight:700; font-size:14px; }
+  .ksrl-fak .fak-titel { display:flex; justify-content:space-between; align-items:flex-end; margin:15px 0 8px; }
+  .ksrl-fak .fak-titel h1 { font-size:27px; font-weight:700; }
+  .ksrl-fak .fak-meta { font-size:11.3px; color:#707070; text-align:right; border-collapse:collapse; }
+  .ksrl-fak .fak-meta td { padding:1px 0 1px 30px; }
+  .ksrl-fak .fak-meta .wert { color:#1f1f1f; font-weight:700; }
+  .ksrl-fak .fak-intro { margin:8px 0; font-size:12.7px; }
+  .ksrl-fak table.fak-pos { width:100%; border-collapse:collapse; margin-top:11px; border-top:2.7px solid #ea591e; }
+  .ksrl-fak table.fak-pos thead th { background:#f8f5f2; text-align:left; padding:8px 11px; font-size:12.7px; font-weight:700; border-bottom:1px solid #d8d2cc; }
+  .ksrl-fak table.fak-pos thead th.num { text-align:right; }
+  .ksrl-fak table.fak-pos thead th .lbl-orange { color:#ea591e; font-size:10.7px; font-weight:400; margin-left:4px; }
+  .ksrl-fak table.fak-pos tbody td { padding:7px 11px; border-bottom:1px solid #d8d2cc; vertical-align:top; }
+  .ksrl-fak table.fak-pos .num { text-align:right; white-space:nowrap; }
+  .ksrl-fak table.fak-sum { width:265px; margin-left:auto; margin-top:11px; border-collapse:collapse; font-size:12.7px; }
+  .ksrl-fak table.fak-sum td { padding:4px 8px; }
+  .ksrl-fak table.fak-sum td.label { color:#707070; }
+  .ksrl-fak table.fak-sum td.num { text-align:right; white-space:nowrap; }
+  .ksrl-fak table.fak-sum tr.brutto td { border-top:2px solid #1f1f1f; border-bottom:2px solid #1f1f1f; font-weight:700; background:#f8f5f2; font-size:14px; padding:8px; }
+  .ksrl-fak .fak-fuss { margin-top:auto; }
+  .ksrl-fak .fak-zahlung { margin-top:30px; padding:15px 19px; background:#f8f5f2; border-left:3px solid #ea591e; font-size:12px; display:flex; gap:23px; align-items:flex-start; }
+  .ksrl-fak .fak-zahlung .zi { flex:1; }
+  .ksrl-fak .fak-zahlung .lbl { text-transform:uppercase; font-size:10px; letter-spacing:1.2px; color:#707070; margin-bottom:6px; }
+  .ksrl-fak .fak-zahlung .frist { color:#ea591e; font-weight:700; }
+  .ksrl-fak .fak-konto { display:grid; grid-template-columns:1fr 1fr; gap:8px 23px; margin-top:9px; }
+  .ksrl-fak .fak-konto span { display:block; font-size:9.3px; color:#707070; text-transform:uppercase; letter-spacing:.5px; }
+  .ksrl-fak .fak-konto strong { display:block; font-size:12px; }
+  .ksrl-fak .fak-vzweck { margin-top:9px; font-size:11.3px; }
+  .ksrl-fak .fak-vzweck code { background:#fff; padding:3px 7px; border:1px solid #d8d2cc; font-family:"Courier New",monospace; font-size:11.3px; color:#ea591e; font-weight:700; }
+  .ksrl-fak .fak-qr { width:121px; text-align:center; flex:0 0 auto; }
+  .ksrl-fak .fak-qr-box { width:121px; height:121px; background:#fff; border:1px solid #d8d2cc; padding:6px; position:relative; }
+  .ksrl-fak .fak-qr-grid { width:100%; height:100%; background-image:repeating-linear-gradient(90deg,#c9c2bb 0 5px,transparent 5px 10px),repeating-linear-gradient(0deg,#c9c2bb 0 5px,transparent 5px 10px); opacity:.5; }
+  .ksrl-fak .fak-qr-finder { position:absolute; width:26px; height:26px; border:5px solid #1f1f1f; background:#fff; }
+  .ksrl-fak .fak-qr-finder.tl { top:8px; left:8px; } .ksrl-fak .fak-qr-finder.tr { top:8px; right:8px; } .ksrl-fak .fak-qr-finder.bl { bottom:8px; left:8px; }
+  .ksrl-fak .fak-qr-label { margin-top:5px; font-size:9.3px; color:#707070; text-transform:uppercase; letter-spacing:.4px; line-height:1.25; }
+  .ksrl-fak .fak-gruss { margin-top:15px; font-size:12px; }
+  .ksrl-fak .fak-footer { position:absolute; bottom:38px; left:68px; right:68px; font-size:9.3px; color:#707070; display:flex; justify-content:space-between; gap:16px; line-height:1.35; }
+  .ksrl-fak .fak-footer .col { flex:1; } .ksrl-fak .fak-footer .col.center { text-align:center; } .ksrl-fak .fak-footer .col.right { text-align:right; }
+  .ksrl-fak .fak-footer .firma-name { color:#ea591e; font-weight:700; font-size:10px; margin-bottom:1px; }
+  .ksrl-fak .fak-footer .link { color:#ea591e; text-decoration:underline; }
+
+  /* ---------- Bank ---------- */
+  .ksrl-syncbox { border:1px solid #d8d2cc; border-radius:8px; padding:20px; background:#fff; margin-bottom:22px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .ksrl-dropzone { border:2px dashed #d8d2cc; border-radius:8px; padding:28px; text-align:center; background:#f8f5f2; margin-top:12px; }
+  .ksrl-report { margin-top:18px; padding:14px 18px; border-radius:8px; }
+  .ksrl-report.dry { background:#e3f2fd; } .ksrl-report.done { background:#e8f5e9; }
+  .ksrl-report .meta { font-size:13px; color:#707070; }
+  .ksrl-report .zaehler { margin-top:8px; display:flex; gap:14px; flex-wrap:wrap; font-size:13px; }
+
+  /* ---------- Diverses ---------- */
+  .ksrl-infobar { background:#f8f5f2; padding:10px 14px; border-radius:6px; margin-bottom:10px; font-size:13px; display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+  .ksrl-sep { color:#707070; }
+  .ksrl-empty { text-align:center; padding:52px 20px; color:#707070; background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .ksrl-empty .icon { font-size:38px; margin-bottom:10px; opacity:.4; }
+  .ksrl-empty h3 { font-size:16px; margin-bottom:6px; color:#1f1f1f; }
+  .ksrl-toasts { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+  .ksrl-toast { background:#fff; border-radius:6px; padding:10px 16px; box-shadow:0 2px 8px rgba(0,0,0,.1); border-left:4px solid #ea591e; font-size:13px; }
+  .ksrl-toast.success { border-left-color:#2e7d32; }
+  .ksrl-toast.error { border-left-color:#c62828; }
+  .ksrl-toast.warning { border-left-color:#f9a825; }
+  .ksrl-demo-note { font-size:11.5px; color:#707070; margin:0 0 10px; }
+  .ksrl-devbar { padding:10px 14px; border-radius:6px; margin-bottom:16px; font-size:12px; font-family:"Courier New",monospace; white-space:pre-wrap; }
+  .ksrl-devbar.ok { background:#e8f5e9; color:#1b5e20; }
+  .ksrl-devbar.bad { background:#ffebee; color:#8e2a1e; }
+  .ksrl-green { color:#2e7d32; } .ksrl-red { color:#c62828; } .ksrl-orange { color:#ea591e; }
+
+  /* ---------- Responsive ----------
+     Die meisten Besucher kommen über das Handy. Deshalb wird auf schmalen Breiten nicht
+     nur umbrochen, sondern reduziert: Sidebar → Scroll-Navigation, Kacheln 2-spaltig und
+     in den Tabellen fallen die Nebenspalten (.sm-hide) weg, statt seitlich wegzulaufen. */
+  @media (max-width:900px) {
+    .ksrl-app { grid-template-columns:1fr; }
+    .ksrl-sidebar { padding:14px 0 0; }
+    .ksrl-brand { padding:0 16px 12px; margin-bottom:0; border-bottom:none; }
+    .ksrl-nav { flex-direction:row; overflow-x:auto; -webkit-overflow-scrolling:touch;
+      border-top:1px solid rgba(224,221,216,.2); border-bottom:1px solid rgba(224,221,216,.2); }
+    .ksrl-nav button { border-left:none; border-bottom:3px solid transparent; padding:12px 16px; }
+    .ksrl-nav button.active { border-left-color:transparent; border-bottom-color:#ea591e; }
+    .ksrl-side-footer { margin-top:0; border-top:none; padding:10px 16px;
+      display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .ksrl-side-footer #ksrl-naechste-nr { margin-top:0; }
+    .ksrl-reset { margin-top:0; }
+    .ksrl-main { padding:22px 16px 40px; }
+    .ksrl-hero { padding:20px 16px 16px; }
+    .ksrl-detail-grid { grid-template-columns:1fr; gap:16px; }
+  }
+  @media (max-width:600px) {
+    .sm-hide { display:none !important; }
+    .sm-only { display:block; }
+    .sm-only-inline { display:inline; }
+    .ksrl-badge { font-size:10px; padding:2px 6px; letter-spacing:.2px; }
+    .ksrl-btn.small { padding:5px 9px; font-size:11.5px; }
+    .ksrl-hero-inner { gap:12px; }
+    .ksrl-hero svg { width:34px; height:34px; }
+    .ksrl-hero-title { font-size:18px; }
+    .ksrl-hero-sub { font-size:11.5px; }
+    .ksrl-disclaimer { font-size:12px; padding:9px 12px; margin-top:12px; }
+    .ksrl-main h1 { font-size:19px; }
+    .ksrl-subtitle { margin-bottom:16px; }
+    .ksrl-cards { grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:18px; }
+    .ksrl-card { padding:12px 13px; border-radius:7px; }
+    .ksrl-card .label { font-size:9.5px; letter-spacing:.5px; margin-bottom:5px; }
+    .ksrl-card .value { font-size:21px; }
+    .ksrl-card .sub { font-size:11px; }
+    .ksrl-card:last-child { grid-column:1 / -1; }
+    .ksrl-table thead th { padding:8px 7px; font-size:10px; }
+    .ksrl-table tbody td { padding:10px 7px; font-size:12.5px; }
+    .ksrl-toolbar { gap:8px; }
+    .ksrl-toolbar input[type="text"], .ksrl-toolbar input[type="email"],
+    .ksrl-toolbar input[type="date"], .ksrl-toolbar select { min-width:0; flex:1 1 46%; }
+    .ksrl-toolbar .ksrl-btn { flex:1 1 100%; }
+    .ksrl-inline-lbl { flex:1 1 100%; }
+    .ksrl-inline-lbl input { flex:1; min-width:0; }
+    .ksrl-form-grid { grid-template-columns:1fr; }
+    .ksrl-pos-row { grid-template-columns:1fr 1fr 28px; grid-template-areas:"t t d" "m p ." "s s s";
+      row-gap:6px; padding-bottom:10px; border-bottom:1px dashed #d8d2cc; }
+    .ksrl-pos-row .pos-text { grid-area:t; } .ksrl-pos-row .pos-menge { grid-area:m; }
+    .ksrl-pos-row .pos-preis { grid-area:p; } .ksrl-pos-row .pos-summe { grid-area:s; }
+    .ksrl-pos-row .pos-del { grid-area:d; }
+    .ksrl-pos-head { display:none; }
+    .ksrl-panel-body { padding:16px 14px; }
+    .ksrl-infobar { gap:8px 12px; font-size:12.5px; padding:9px 12px; }
+    .ksrl-fak-wrap { padding:8px; }
+    .ksrl-h2 { font-size:15px; margin:20px 0 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="ksrl-root">
+
+  <div class="ksrl-hero">
+    <div class="ksrl-hero-inner">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12.76 12.76" width="46" height="46" aria-label="KarlSch">
+          <rect x="1.71" y=".44" width="3.2" height="11.87" rx=".56" ry=".56" fill="#E0DDD8"/>
+          <path d="M10.46,6.11h-2.01s-.05,0-.07,0l2.59-4.81c.21-.39-.07-.87-.52-.87h-2.01c-.22,0-.41.12-.52.31l-2.71,5.03c-.21.39.07.87.52.87h2.01s.05,0,.07,0l-2.59,4.81c-.21.39.07.87.52.87h2.01c.22,0,.41-.12.52-.31l2.71-5.03c.21-.39-.07-.87-.52-.87Z" fill="#E0DDD8"/>
+        </svg>
+      </div>
+      <div class="ksrl-hero-text">
+        <div class="ksrl-hero-title">Beispiel GmbH — Rechnungs-Cockpit</div>
+        <div class="ksrl-hero-sub">Fractional CFO · Business Consulting · KI-Automatisierung — karlsch.at</div>
+      </div>
+    </div>
+    <details class="ksrl-disclaimer" id="ksrl-disclaimer" open>
+      <summary><b>Vorschau mit fiktiven Beispieldaten.</b> So sieht deine eigene Rechnungslegung aus.
+        <span class="mehr">mehr</span></summary>
+      <div class="rest">Rechnung erstellen und versenden, Zahlungseingänge automatisch über die Bank
+        abgleichen, Mahnwesen als Kaskade — Zahlungserinnerung läuft automatisch, ab der 1. Mahnung
+        entscheidest du per Klick. Alle Zahlen, Namen und Interaktionen dienen ausschließlich der
+        Demonstration; es wird nichts versendet und nichts gespeichert.</div>
+    </details>
+  </div>
+
+  <div class="ksrl-app">
+    <aside class="ksrl-sidebar">
+      <div class="ksrl-brand">
+        <div class="ksrl-logo-box">B</div>
+        <div>
+          <div class="name">Beispiel GmbH</div>
+          <div class="sub">Rechnungs-Cockpit</div>
+        </div>
+      </div>
+      <nav class="ksrl-nav" id="ksrl-nav">
+        <button data-view="dashboard" class="active">Dashboard</button>
+        <button data-view="rechnungen">Rechnungen</button>
+        <button data-view="neue-rechnung">Neue Rechnung</button>
+        <button data-view="mahnungen">Mahnungen</button>
+        <button data-view="bank">Bank</button>
+        <button data-view="kunden">Kunden</button>
+        <button data-view="einstellungen">Einstellungen</button>
+      </nav>
+      <div class="ksrl-side-footer">
+        <div id="ksrl-naechste-nr"></div>
+        <button class="ksrl-reset" id="ksrl-reset">↺ Demo zurücksetzen</button>
+      </div>
+    </aside>
+
+    <main class="ksrl-main">
+      <div id="ksrl-devbar"></div>
+      <div class="ksrl-toasts" id="ksrl-toasts"></div>
+
+      <!-- DASHBOARD -->
+      <section class="ksrl-view active" id="ksrl-view-dashboard">
+        <h1>Dashboard</h1>
+        <p class="ksrl-subtitle">Übersicht über deine Rechnungen, offene Beträge und kürzliche Aktivitäten.</p>
+        <div class="ksrl-cards" id="ksrl-dash-cards"></div>
+        <h2 class="ksrl-h2">Letzte Rechnungen</h2>
+        <div id="ksrl-dash-letzte"></div>
+      </section>
+
+      <!-- RECHNUNGEN -->
+      <section class="ksrl-view" id="ksrl-view-rechnungen">
+        <div id="ksrl-rechnungen-liste-wrap">
+          <h1>Rechnungen</h1>
+          <p class="ksrl-subtitle">Alle gestellten Rechnungen mit Filter, Suche und Detail-Ansicht.</p>
+          <div class="ksrl-toolbar">
+            <input type="text" id="ksrl-f-suche" aria-label="Suche" placeholder="Suche nach Nummer oder Beschreibung...">
+            <select id="ksrl-f-kunde" aria-label="Kunde filtern"><option value="">Alle Kunden</option></select>
+            <select id="ksrl-f-status" aria-label="Status filtern">
+              <option value="">Alle Status</option>
+              <option value="offen">Offen</option>
+              <option value="zahlungserinnerung_versandt">Zahlungserinnerung</option>
+              <option value="mahnung1_versandt">1. Mahnung</option>
+              <option value="mahnung2_versandt">2. Mahnung</option>
+              <option value="inkasso_manuell">Inkasso</option>
+              <option value="bezahlt">Bezahlt</option>
+              <option value="storniert">Storniert</option>
+            </select>
+            <select id="ksrl-f-jahr" aria-label="Jahr filtern"><option value="">Alle Jahre</option><option value="2026">2026</option></select>
+            <select id="ksrl-f-monat" aria-label="Monat filtern">
+              <option value="">Alle Monate</option>
+              <option value="01">Jänner</option><option value="02">Februar</option><option value="03">März</option>
+              <option value="04">April</option><option value="05">Mai</option><option value="06">Juni</option>
+              <option value="07">Juli</option><option value="08">August</option><option value="09">September</option>
+              <option value="10">Oktober</option><option value="11">November</option><option value="12">Dezember</option>
+            </select>
+            <label class="ksrl-check"><input type="checkbox" id="ksrl-f-ueberfaellig"> nur überfällig</label>
+            <div class="ksrl-grow"></div>
+            <button class="ksrl-btn" data-goto="neue-rechnung">+ Neue Rechnung</button>
+          </div>
+          <div id="ksrl-rechnungen-summary"></div>
+          <div id="ksrl-rechnungen-liste"></div>
+        </div>
+        <div id="ksrl-detail-wrap"></div>
+      </section>
+
+      <!-- NEUE RECHNUNG -->
+      <section class="ksrl-view" id="ksrl-view-neue-rechnung">
+        <h1>Neue Rechnung erstellen</h1>
+        <p class="ksrl-subtitle">Kunde wählen, Positionen erfassen, Vorschau prüfen, versenden.</p>
+        <form id="ksrl-form-neu">
+          <div class="ksrl-form-grid">
+            <div class="ksrl-field">
+              <label>Kunde *</label>
+              <select id="ksrl-nr-kunde" required></select>
+            </div>
+            <div class="ksrl-field">
+              <label>Leistungszeitraum</label>
+              <input type="text" id="ksrl-nr-zeitraum" placeholder="z.B. Juli 2026">
+            </div>
+            <div class="ksrl-field">
+              <label>Zahlungsziel (Tage)</label>
+              <input type="number" id="ksrl-nr-ziel" placeholder="aus Kunde übernehmen">
+            </div>
+            <div class="ksrl-field">
+              <label>Test-Empfänger (optional)</label>
+              <input type="email" id="ksrl-nr-test" placeholder="leer = an Kunden-Email">
+              <span class="ksrl-hint">Wenn gesetzt, geht die Mail dorthin statt an den Kunden.</span>
+            </div>
+            <div class="full">
+              <label style="font-size:12px;color:#707070;font-weight:500;">Positionen *</label>
+              <div class="ksrl-pos-head"><div>Beschreibung</div><div>Menge</div><div>Einzelpreis</div><div style="text-align:right;">Summe</div><div></div></div>
+              <div class="ksrl-poslist" id="ksrl-poslist"></div>
+              <button type="button" class="ksrl-btn secondary small" style="margin-top:8px;" id="ksrl-add-pos">+ Position hinzufügen</button>
+            </div>
+            <div class="full">
+              <div class="ksrl-summen">
+                <div><span>Netto-Summe</span><span id="ksrl-vor-netto">€ 0,00</span></div>
+                <div><span>USt. (20%)</span><span id="ksrl-vor-ust">€ 0,00</span></div>
+                <div class="brutto"><span>Rechnungsbetrag</span><span id="ksrl-vor-brutto">€ 0,00</span></div>
+              </div>
+            </div>
+            <div class="full">
+              <label class="ksrl-check"><input type="checkbox" id="ksrl-nr-versenden" checked> Automatisch per Email versenden (sonst nur PDF erstellen)</label>
+            </div>
+            <div class="full" style="display:flex;gap:10px;justify-content:flex-end;">
+              <button type="button" class="ksrl-btn secondary" data-goto="rechnungen">Abbrechen</button>
+              <button type="submit" class="ksrl-btn">Rechnung erstellen</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- MAHNUNGEN -->
+      <section class="ksrl-view" id="ksrl-view-mahnungen">
+        <h1>Mahnungen</h1>
+        <p class="ksrl-subtitle">Tag 7 Zahlungserinnerung → Tag 21 1. Mahnung (+40 € Pauschale) → Tag 35 2. Mahnung → Tag 49 Eskalation. Vorschau zeigt was zum Stichtag fällig ist, dann Einzel- oder Sammelversand.</p>
+        <div class="ksrl-toolbar">
+          <label class="ksrl-inline-lbl">Stichtag: <input type="date" id="ksrl-mahn-datum"></label>
+          <label class="ksrl-inline-lbl">Test-Empfänger (statt Kunde): <input type="email" id="ksrl-mahn-test" placeholder="leer = an Kunde" style="width:200px;"></label>
+          <div class="ksrl-grow"></div>
+          <button class="ksrl-btn secondary" id="ksrl-mahn-refresh">Aktualisieren</button>
+          <button class="ksrl-btn danger" id="ksrl-mahn-all">Alle senden</button>
+        </div>
+        <div id="ksrl-mahn-liste"></div>
+        <h2 class="ksrl-h2">Automatisch versandt &amp; demnächst fällig</h2>
+        <div id="ksrl-mahn-vorschau"></div>
+      </section>
+
+      <!-- BANK -->
+      <section class="ksrl-view" id="ksrl-view-bank">
+        <h1>Bank</h1>
+        <p class="ksrl-subtitle">Zahlungseingänge mit den offenen Rechnungen abgleichen (Rechnungs-ID im Verwendungszweck + Betragsabgleich) und automatisch als bezahlt markieren.</p>
+        <div class="ksrl-syncbox">
+          <div style="flex:1;min-width:240px;">
+            <div style="font-size:15px;font-weight:600;">Revolut Business — Direkt-Sync</div>
+            <div style="font-size:12px;color:#707070;margin-top:4px;">Holt die Buchungen der letzten 90 Tage direkt aus der Bank. Standard ist Dry-Run; danach kannst du echt importieren.</div>
+          </div>
+          <button class="ksrl-btn" id="ksrl-btn-sync">↻ Jetzt mit Revolut syncen</button>
+        </div>
+        <details style="margin-bottom:18px;">
+          <summary style="cursor:pointer;font-size:13px;color:#707070;">Alternativ: CAMT.053 XML manuell hochladen</summary>
+          <div class="ksrl-dropzone" id="ksrl-dropzone">
+            <div style="font-size:14px;color:#707070;margin-bottom:8px;">CAMT.053 XML-Datei hier hineinziehen</div>
+            <div style="font-size:12px;color:#707070;margin-bottom:14px;">— oder —</div>
+            <button class="ksrl-btn" id="ksrl-btn-file">Datei auswählen</button>
+            <div style="margin-top:14px;font-size:11px;color:#707070;">
+              In dieser Vorschau wird <strong>keine Datei gelesen</strong> — der Klick zeigt denselben simulierten Abgleich wie der Sync-Button.
+            </div>
+          </div>
+        </details>
+        <div id="ksrl-bank-report"></div>
+        <h2 class="ksrl-h2">Bisher importierte Transaktionen</h2>
+        <div id="ksrl-bank-tx"></div>
+      </section>
+
+      <!-- KUNDEN -->
+      <section class="ksrl-view" id="ksrl-view-kunden">
+        <h1>Kunden</h1>
+        <p class="ksrl-subtitle">Stammdaten aller Kunden verwalten.</p>
+        <div class="ksrl-toolbar">
+          <input type="text" id="ksrl-k-suche" aria-label="Kunde suchen" placeholder="Suche Kunde...">
+          <div class="ksrl-grow"></div>
+          <button class="ksrl-btn" id="ksrl-k-neu">+ Neuer Kunde</button>
+        </div>
+        <div id="ksrl-kunden-liste"></div>
+        <div id="ksrl-kunde-detail"></div>
+      </section>
+
+      <!-- EINSTELLUNGEN -->
+      <section class="ksrl-view" id="ksrl-view-einstellungen">
+        <h1>Einstellungen</h1>
+        <p class="ksrl-subtitle">Firma, Bank, Buchhaltungs-Email und Rechnungsnummerierung.</p>
+        <div id="ksrl-einstellungen"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================================
+   A — DATENWELT (wörtlich aus dem Finance Dashboard preview, damit beide
+       Vorschauen dieselben Zahlen zeigen)
+   ========================================================================= */
+
+var TODAY = '2026-08-09';
+var JAHR = 2026;
+var UST_SATZ = 0.20;
+var ZAHLUNGSZIEL = 30;
+
+var MONATSNAMEN = ['Jänner','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+/* Monatsumsätze netto (Jan-Dez) — Jahresumsatz 2.880.000 EUR */
+var REVENUE = [195000,205000,235000,250000,240000,260000,220000,200000,245000,275000,290000,265000];
+
+/* Produkte: Anteil am Jahresumsatz, Marge, Einzelpreis netto */
+var PRODUCTS = [
+  { name:'Produkt A', price:145 }, { name:'Produkt B', price:95 },  { name:'Produkt C', price:65 },
+  { name:'Produkt D', price:210 }, { name:'Produkt E', price:380 }, { name:'Produkt F', price:55 },
+  { name:'Produkt G', price:480 }
+];
+
+/* Kunden — anteil am Umsatz, Rechnungen pro Jahr, Ø Zahlungsdauer (Zieltage) */
+var CUSTOMERS = [
+  { id:'KA', name:'Kunde A (Handel)',        anteil:0.30, rechnungen:14, dso:68, ort:'1030 Wien',       str:'Handelskai 12' },
+  { id:'KB', name:'Kunde B (Bau)',           anteil:0.25, rechnungen:12, dso:21, ort:'4020 Linz',       str:'Industriezeile 44' },
+  { id:'KC', name:'Kunde C (Logistik)',      anteil:0.08, rechnungen:7,  dso:47, ort:'5020 Salzburg',   str:'Frachtweg 8' },
+  { id:'KD', name:'Kunde D (Handel)',        anteil:0.06, rechnungen:6,  dso:18, ort:'8010 Graz',       str:'Marktplatz 3' },
+  { id:'KE', name:'Kunde E (Industrie)',     anteil:0.05, rechnungen:5,  dso:61, ort:'4600 Wels',       str:'Werkstraße 21' },
+  { id:'KF', name:'Kunde F (IT)',            anteil:0.04, rechnungen:4,  dso:15, ort:'1070 Wien',       str:'Technologiepark 5' },
+  { id:'KG', name:'Kunde G (Produktion)',    anteil:0.04, rechnungen:4,  dso:43, ort:'6020 Innsbruck',  str:'Fertigungsweg 17' },
+  { id:'KH', name:'Kunde H (Beratung)',      anteil:0.03, rechnungen:3,  dso:12, ort:'1010 Wien',       str:'Ringstraße 9' },
+  { id:'KI', name:'Kunde I (Großhandel)',    anteil:0.03, rechnungen:3,  dso:25, ort:'9020 Klagenfurt', str:'Lagerstraße 30' },
+  { id:'KJ', name:'Kunde J (Einzelhandel)',  anteil:0.03, rechnungen:3,  dso:33, ort:'6900 Bregenz',    str:'Seepromenade 2' },
+  { id:'DIV',name:'Übrige Kunden (diverse)', anteil:0.09, rechnungen:12, dso:36, ort:'diverse',         str:'Sammelkonto' }
+];
+
+/* Offene Forderungen — Summe exakt 300.000 EUR brutto, wie im Finance Dashboard.
+   "tage" = Tage seit Rechnungsdatum. Zahlungsziel 30 -> Verzug = tage - 30.
+   mahnStufen = bereits versandte Mahnstufen (Datum wird aus faelligAm abgeleitet). */
+var OFFENE = [
+  { re:'RE-2301', kid:'KA', brutto:68000, tage:96, mahnStufen:[0,1,2], mix:[['Produkt A',300],['Produkt D',40],['Produkt E',12]] },
+  { re:'RE-2338', kid:'KE', brutto:29500, tage:74, mahnStufen:[0,1],   mix:[['Produkt D',60],['Produkt E',25],['Produkt B',24]] },
+  { re:'RE-2390', kid:'KC', brutto:42800, tage:52, mahnStufen:[0],     mix:[['Produkt A',150],['Produkt D',45],['Produkt F',80]] },
+  { re:'RE-2412', kid:'KG', brutto:23900, tage:45, mahnStufen:[0],     mix:[['Produkt C',120],['Produkt B',60],['Produkt D',30]] },
+  { re:'RE-2440', kid:'KB', brutto:58200, tage:22, mahnStufen:[],      mix:[['Produkt A',200],['Produkt D',70],['Produkt G',10]] },
+  { re:'RE-2455', kid:'KD', brutto:31600, tage:14, mahnStufen:[],      mix:[['Produkt A',120],['Produkt B',50],['Produkt C',60]] },
+  { re:'RE-2467', kid:'KF', brutto:26400, tage:8,  mahnStufen:[],      mix:[['Produkt E',40],['Produkt G',10],['Produkt B',20]] },
+  { re:'RE-2478', kid:'KH', brutto:19600, tage:3,  mahnStufen:[],      mix:[['Produkt D',50],['Produkt E',15]] }
+];
+
+/* Lieferanten für die Ausgangs-Buchungen im Bank-Tab (Platzhalternamen wie im Finance Dashboard) */
+var LIEFERANTEN = ['Lieferant A (IT und Cloud)','Lieferant B (Druckerei)','Lieferant C (Gebäudeservice)','Lieferant F (Marketing)'];
+
+/* Zielumsatz YTD netto: Jan-Jul abgeschlossen (1.605.000) + Aug 1.-6. anteilig (58.000, gerundet gesetzt) */
+var TARGET_YTD_NETTO = 1605000 + 58000;
+
+/* =========================================================================
+   B — STAMMDATEN (fiktiv; alle Domains auf .example = RFC 2606, kann nie
+       ein echtes Unternehmen treffen)
+   ========================================================================= */
+
+var FIRMA = {
+  name:'Beispiel GmbH', inhaber:'Beispiel GmbH', geschaeftsfuehrer:'Geschäftsführung',
+  slogan:'Handel & Distribution',
+  adresse:{ street:'Musterstraße 1', zip:'1010', city:'Wien', country:'Österreich' },
+  uid:'ATU00000000', firmenbuch:'FN 000000a',
+  kontakt:{ email:'office@beispiel-gmbh.example', telefon:'+43 1 000 00 00', web:'www.beispiel-gmbh.example' },
+  buchhaltung:{ email:'buchhaltung@steuerberatung.example' },
+  bank:{ kontoinhaber:'Beispiel GmbH', name:'Demo-Bank', iban:'AT•• •••• •••• 4471', bic:'••••ATWW' }
+};
+
+var NUMMERIERUNG = { praefix:'RE', naechsterWert:2479, minInkrement:1, maxInkrement:14 };
+
+var STATUS_LABEL = {
+  offen:'Offen', bezahlt:'Bezahlt', zahlungserinnerung_versandt:'Zahlungserinnerung',
+  mahnung1_versandt:'1. Mahnung', mahnung2_versandt:'2. Mahnung', inkasso_manuell:'Inkasso', storniert:'Storniert'
+};
+var STATUS_BADGE = {
+  offen:'offen', bezahlt:'bezahlt', zahlungserinnerung_versandt:'ze',
+  mahnung1_versandt:'m1', mahnung2_versandt:'m2', inkasso_manuell:'inkasso', storniert:'storniert'
+};
+/* Kurzform fürs Handy — sonst zwingt „Zahlungserinnerung" die Status-Spalte auf 174 px. */
+var STATUS_KURZ = {
+  offen:'Offen', bezahlt:'Bezahlt', zahlungserinnerung_versandt:'Erinnerung',
+  mahnung1_versandt:'1. Mahn.', mahnung2_versandt:'2. Mahn.', inkasso_manuell:'Inkasso', storniert:'Storno'
+};
+
+/* =========================================================================
+   C — MAHN-KASKADE (identisch zum echten Tool, lib/mahnung.mjs)
+   ========================================================================= */
+
+var VERZUGSZINSEN_SATZ_PA = 9.2;
+var MAHN_KASKADE = [
+  { stufe:0, tage:7,  titel:'Zahlungserinnerung',                 pauschale:0,  zinsen:false, frist:7,
+    statusVorher:['offen'], statusNachher:'zahlungserinnerung_versandt', automatisch:true },
+  { stufe:1, tage:21, titel:'1. Mahnung',                         pauschale:40, zinsen:true,  frist:7,
+    statusVorher:['offen','zahlungserinnerung_versandt'], statusNachher:'mahnung1_versandt', automatisch:false },
+  { stufe:2, tage:35, titel:'2. Mahnung – letzte Aufforderung',   pauschale:40, zinsen:true,  frist:7,
+    statusVorher:['offen','zahlungserinnerung_versandt','mahnung1_versandt'], statusNachher:'mahnung2_versandt', automatisch:false },
+  { stufe:3, tage:49, titel:'Eskalation – Inkasso prüfen',        pauschale:0,  zinsen:false, frist:0,
+    statusVorher:['mahnung2_versandt'], statusNachher:'inkasso_manuell', automatisch:false }
+];
+var STUFEN_LABEL = ['Zahlungserinnerung','1. Mahnung','2. Mahnung','Eskalation → intern'];
+var STUFEN_KURZ  = ['Erinnerung','1. Mahn.','2. Mahn.','Eskalation'];
+var STUFEN_BADGE = ['ze','m1','m2','inkasso'];
+
+/* =========================================================================
+   D — HELPER
+   ========================================================================= */
+
+function esc(s){
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+  });
+}
+function pad2(n){ return n < 10 ? '0' + n : '' + n; }
+
+/* Datum: ISO-Strings NIE durch new Date() schicken (Zeitzonen-Verschiebung),
+   Arithmetik ausschließlich über Date.UTC-Tagesindizes. */
+function dnum(iso){ var p = iso.split('-'); return Date.UTC(+p[0], +p[1]-1, +p[2]) / 86400000; }
+function dstr(idx){
+  var d = new Date(idx * 86400000);
+  return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth()+1) + '-' + pad2(d.getUTCDate());
+}
+function addDays(iso, n){ return dstr(dnum(iso) + n); }
+function diffDays(a, b){ return dnum(a) - dnum(b); }
+function fmtDatum(iso){ if (!iso) return '-'; var p = iso.split('-'); return p[2] + '.' + p[1] + '.' + p[0]; }
+function monatIdx(iso){ return +iso.split('-')[1] - 1; }
+function monatName(iso){ return MONATSNAMEN[monatIdx(iso)] + ' ' + iso.split('-')[0]; }
+
+/* Geld: intern immer Cent als Integer, erst zur Anzeige formatiert.
+   Bewusst die Währungs-Formatierung von de-AT — die liefert Punkt als Tausender-
+   trennzeichen (die reine Zahlen-Formatierung von de-AT nimmt ein Leerzeichen und
+   sähe neben dem Finance Dashboard falsch aus). */
+var FMT2 = new Intl.NumberFormat('de-AT', { style:'currency', currency:'EUR' });
+var FMT0 = new Intl.NumberFormat('de-AT', { style:'currency', currency:'EUR', minimumFractionDigits:0, maximumFractionDigits:0 });
+function eur2(cent){ return FMT2.format(cent/100); }
+function eur0(cent){ return FMT0.format(cent/100); }
+function num(v){ return Math.round(v).toLocaleString('de-DE'); }
+
+function lcg(seed){
+  var s = seed >>> 0;
+  return function(){ s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+}
+
+/* =========================================================================
+   E — GENERATOR (deterministisch, kein Math.random)
+   ========================================================================= */
+
+function kunde(id){ for (var i=0;i<CUSTOMERS.length;i++) if (CUSTOMERS[i].id === id) return CUSTOMERS[i]; return null; }
+function produkt(name){ for (var i=0;i<PRODUCTS.length;i++) if (PRODUCTS[i].name === name) return PRODUCTS[i]; return null; }
+
+/* Positionen aus einem Produktmix + Ausgleichszeile, so dass Netto exakt getroffen wird. */
+function posAusMix(mix, nettoCent){
+  var pos = [], summe = 0;
+  for (var i=0;i<mix.length;i++){
+    var p = produkt(mix[i][0]), menge = mix[i][1], satz = p.price * 100;
+    pos.push({ beschreibung:p.name, menge:menge, einheit:'Stk', satzCent:satz });
+    summe += menge * satz;
+  }
+  var rest = nettoCent - summe;
+  if (rest > 0) pos.push({ beschreibung:'Versand, Verpackung & Handling', menge:1, einheit:'pauschal', satzCent:rest });
+  return pos;
+}
+
+/* Automatischer Mix für die generierten Historie-Rechnungen. q1 füllt den Rest auf,
+   der Bruchteil darunter landet in der Handling-Zeile -> Zielbetrag per Konstruktion exakt. */
+function autoMix(nettoCent, seed){
+  var r = lcg(seed), idx = [], k;
+  while (idx.length < 3){ k = Math.floor(r() * PRODUCTS.length); if (idx.indexOf(k) < 0) idx.push(k); }
+  var p1 = PRODUCTS[idx[0]], p2 = PRODUCTS[idx[1]], p3 = PRODUCTS[idx[2]];
+  var q2 = Math.max(1, Math.floor(nettoCent * 0.18 / (p2.price * 100)));
+  var q3 = Math.max(1, Math.floor(nettoCent * 0.10 / (p3.price * 100)));
+  var rest = nettoCent - q2 * p2.price * 100 - q3 * p3.price * 100;
+  while (rest < p1.price * 100 && (q2 > 1 || q3 > 1)){
+    if (q2 > 1) q2--; else q3--;
+    rest = nettoCent - q2 * p2.price * 100 - q3 * p3.price * 100;
+  }
+  var q1 = Math.max(1, Math.floor(rest / (p1.price * 100)));
+  return [[p1.name, q1], [p2.name, q2], [p3.name, q3]];
+}
+
+function baueRechnungen(){
+  var alle = [], i, j, c, n;
+
+  /* --- 1) Offene Posten (Anker) --- */
+  for (i=0;i<OFFENE.length;i++){
+    var o = OFFENE[i];
+    var datum = addDays(TODAY, -o.tage);
+    var faellig = addDays(datum, ZAHLUNGSZIEL);
+    var bruttoCent = o.brutto * 100;
+    var nettoCent = Math.round(bruttoCent / (1 + UST_SATZ));
+    var mahnungen = [];
+    for (j=0;j<o.mahnStufen.length;j++){
+      var st = MAHN_KASKADE[o.mahnStufen[j]];
+      mahnungen.push({ stufe:st.stufe, datum:addDays(faellig, st.tage) });
+    }
+    var status = mahnungen.length ? MAHN_KASKADE[mahnungen[mahnungen.length-1].stufe].statusNachher : 'offen';
+    alle.push({
+      id:o.re, nr:+o.re.split('-')[1], customerId:o.kid, datum:datum, faelligAm:faellig,
+      leistungszeitraum:monatName(addDays(datum, -20)),
+      positionen:posAusMix(o.mix, nettoCent),
+      status:status, bezahltAm:null, reviewNeeded:null, storniert:null,
+      versand:{ datum:datum, an:kundeEmail(o.kid), cc:[FIRMA.buchhaltung.email] },
+      mahnungen:mahnungen, anker:true
+    });
+  }
+
+  /* --- 2) Bezahlte Historie je Kunde --- */
+  var todayIdx = dnum(TODAY);
+  var startIdx = dnum('2026-01-08'), endIdx = dnum('2026-08-03');
+  var seed = 7;
+
+  for (i=0;i<CUSTOMERS.length;i++){
+    c = CUSTOMERS[i];
+    var gesamtYtd = Math.max(1, Math.round(c.rechnungen * 7.3 / 12));
+    var offenAnz = 0, offenNetto = 0;
+    for (j=0;j<alle.length;j++) if (alle[j].customerId === c.id){ offenAnz++; offenNetto += nettoVon(alle[j]); }
+    n = Math.max(0, gesamtYtd - offenAnz);
+    if (!n) continue;
+
+    var zielNetto = Math.round(c.anteil * TARGET_YTD_NETTO * 100);   /* Cent */
+    var restNetto = zielNetto - offenNetto;
+    if (restNetto < n * 100000) restNetto = n * 100000;              /* Untergrenze 1.000 EUR/Rechnung */
+
+    /* Zahlungsdauern: symmetrisch um dso (Mittelwert 0 per Konstruktion), langsamste zuerst */
+    var spread = Math.min(c.dso - 3, 27);
+    var payDays = [], datum2 = [], gewicht = [], gewichtSum = 0;
+    for (j=0;j<n;j++){
+      var f = (n === 1) ? 0 : (1 - 2 * j / (n - 1));
+      payDays.push(Math.max(3, Math.round(c.dso + spread * f)));
+      /* Versatz je Kunde, damit nicht mehrere Kunden am selben Tag fakturieren */
+      var even = startIdx + (i % 5) * 2 + Math.round((endIdx - startIdx - 10) * (n === 1 ? 0.5 : j / (n - 1)));
+      var maxIdx = todayIdx - payDays[j] - 2;
+      var di = Math.min(even, maxIdx);
+      if (di < startIdx) di = startIdx;
+      datum2.push(dstr(di));
+      var g = REVENUE[monatIdx(datum2[j])];
+      gewicht.push(g); gewichtSum += g;
+    }
+
+    var vergeben = 0;
+    for (j=0;j<n;j++){
+      var nettoC = (j === n-1) ? (restNetto - vergeben) : Math.round(restNetto * gewicht[j] / gewichtSum);
+      vergeben += nettoC;
+      var d = datum2[j];
+      var bez = addDays(d, payDays[j]);
+      if (dnum(bez) > todayIdx) bez = TODAY;
+      alle.push({
+        id:null, nr:null, customerId:c.id, datum:d, faelligAm:addDays(d, ZAHLUNGSZIEL),
+        leistungszeitraum:monatName(addDays(d, -20)),
+        positionen:posAusMix(autoMix(nettoC, seed++), nettoC),
+        status:'bezahlt', bezahltAm:bez, reviewNeeded:null, storniert:null,
+        versand:{ datum:d, an:kundeEmail(c.id), cc:[FIRMA.buchhaltung.email] },
+        mahnungen:[], anker:false
+      });
+    }
+  }
+
+  /* --- 3) Nummernvergabe: Anker fix, Lücken chronologisch aufgefüllt --- */
+  alle.sort(function(a,b){
+    if (a.datum !== b.datum) return a.datum < b.datum ? -1 : 1;
+    if (a.anker !== b.anker) return a.anker ? 1 : -1;
+    return 0;
+  });
+  var prevNum = 2129, k, seg = [];
+  for (i=0;i<alle.length;i++){
+    if (alle[i].anker){
+      verteileNummern(seg, prevNum, alle[i].nr);
+      prevNum = alle[i].nr; seg = [];
+    } else seg.push(alle[i]);
+  }
+  verteileNummern(seg, prevNum, NUMMERIERUNG.naechsterWert);
+  for (i=0;i<alle.length;i++) if (!alle[i].id) alle[i].id = 'RE-' + alle[i].nr;
+
+  return alle;
+}
+
+function verteileNummern(seg, lo, hi){
+  var k = seg.length;
+  if (!k) return;
+  for (var i=0;i<k;i++) seg[i].nr = lo + Math.round((hi - lo) * (i + 1) / (k + 1));
+  for (i=1;i<k;i++) if (seg[i].nr <= seg[i-1].nr) seg[i].nr = seg[i-1].nr + 1;
+}
+
+/* .example ist per RFC 2606 reserviert — die Adressen können nie ein echtes Unternehmen treffen. */
+function kundeEmail(id){
+  if (id === 'DIV') return 'rechnungen@kleinkunden.example';
+  return 'rechnungen@kunde-' + id.slice(1).toLowerCase() + '.example';
+}
+
+/* Bank-Transaktionen: die bereits abgeglichenen Eingänge aus der Historie + Ausgänge. */
+function baueBankTx(rechnungen){
+  var tx = [], i;
+  var bezahlt = rechnungen.filter(function(r){ return r.status === 'bezahlt' && r.bezahltAm; })
+    .sort(function(a,b){ return a.bezahltAm < b.bezahltAm ? 1 : -1; }).slice(0, 12);
+  for (i=0;i<bezahlt.length;i++){
+    var r = bezahlt[i];
+    tx.push({
+      datum:r.bezahltAm, gegen:kunde(r.customerId).name, betragCent:bruttoVon(r), eingang:true,
+      zweck:'Zahlung ' + r.id, typ:'match', rechnungId:r.id
+    });
+  }
+  var ausgaenge = [
+    { datum:'2026-08-05', gegen:LIEFERANTEN[0], betragCent:-842000, zweck:'ER-5510 Cloud-Infrastruktur Juli' },
+    { datum:'2026-08-03', gegen:LIEFERANTEN[3], betragCent:-510000, zweck:'ER-5537 Kampagne Sommer' },
+    { datum:'2026-07-31', gegen:LIEFERANTEN[2], betragCent:-198000, zweck:'ER-5531 Reinigung Juli' }
+  ];
+  for (i=0;i<ausgaenge.length;i++){ ausgaenge[i].eingang = false; ausgaenge[i].typ = 'kein_eingang'; tx.push(ausgaenge[i]); }
+  tx.sort(function(a,b){ return a.datum < b.datum ? 1 : -1; });
+  return tx;
+}
+
+/* =========================================================================
+   F — STATE
+   ========================================================================= */
+
+var state = {
+  rechnungen: [], bankTx: [], view:'dashboard', detailId:null, kundeDetail:null,
+  sort:{ key:'datum', dir:'desc' }, mahnStichtag:TODAY, bankReport:null, nextNr:NUMMERIERUNG.naechsterWert,
+  neuePos:[]
+};
+
+function resetDemo(){
+  state.rechnungen = baueRechnungen();
+  state.bankTx = baueBankTx(state.rechnungen);
+  state.detailId = null; state.kundeDetail = null; state.bankReport = null;
+  state.nextNr = NUMMERIERUNG.naechsterWert;
+  state.mahnStichtag = TODAY;
+  state.sort = { key:'datum', dir:'desc' };
+}
+
+/* =========================================================================
+   G — ABLEITUNGEN (nichts davon wird gespeichert)
+   ========================================================================= */
+
+function nettoVon(r){ var s=0; for (var i=0;i<r.positionen.length;i++) s += r.positionen[i].menge * r.positionen[i].satzCent; return s; }
+function ustVon(r){ return Math.round(nettoVon(r) * UST_SATZ); }
+function bruttoVon(r){ return nettoVon(r) + ustVon(r); }
+function istUeberfaellig(r, stichtag){
+  if (r.status === 'bezahlt' || r.status === 'storniert') return false;
+  return dnum(r.faelligAm) < dnum(stichtag || TODAY);
+}
+function verzugTage(r, stichtag){ return diffDays(stichtag || TODAY, r.faelligAm); }
+
+/* Höchste passende Mahnstufe — identisch zur Logik im echten Tool:
+   Verzugstage erreicht UND aktueller Status in statusVorher. */
+function naechsteMahnstufe(r, stichtag){
+  if (r.status === 'bezahlt' || r.status === 'storniert' || r.status === 'inkasso_manuell') return null;
+  if (r.reviewNeeded) return null;
+  var v = verzugTage(r, stichtag);
+  for (var i=MAHN_KASKADE.length-1;i>=0;i--){
+    var s = MAHN_KASKADE[i];
+    if (v >= s.tage && s.statusVorher.indexOf(r.status) >= 0) return s;
+  }
+  return null;
+}
+function verzugszinsen(bruttoCent, tage){
+  return Math.round(bruttoCent * VERZUGSZINSEN_SATZ_PA / 100 * tage / 365);
+}
+function mahnZeile(r, stichtag){
+  var s = naechsteMahnstufe(r, stichtag);
+  if (!s) return null;
+  var v = verzugTage(r, stichtag), brutto = bruttoVon(r);
+  var pauschale = s.pauschale * 100;
+  var zinsen = s.zinsen ? verzugszinsen(brutto, v) : 0;
+  return {
+    r:r, stufe:s, verzug:v, bruttoCent:brutto, pauschaleCent:pauschale, zinsenCent:zinsen,
+    gesamtCent:brutto + pauschale + zinsen, neueFrist:s.frist ? addDays(stichtag, s.frist) : null
+  };
+}
+function faelligeMahnungen(stichtag){
+  var out = [];
+  for (var i=0;i<state.rechnungen.length;i++){
+    var z = mahnZeile(state.rechnungen[i], stichtag);
+    if (z) out.push(z);
+  }
+  out.sort(function(a,b){ return b.verzug - a.verzug; });
+  return out;
+}
+function stats(){
+  var g={a:0,s:0}, b={a:0,s:0}, o={a:0,s:0}, u={a:0,s:0};
+  for (var i=0;i<state.rechnungen.length;i++){
+    var r = state.rechnungen[i];
+    if (r.status === 'storniert') continue;
+    var br = bruttoVon(r);
+    g.a++; g.s += br;
+    if (r.status === 'bezahlt'){ b.a++; b.s += br; }
+    else { o.a++; o.s += br; if (istUeberfaellig(r)){ u.a++; u.s += br; } }
+  }
+  return { gesamt:g, bezahlt:b, offen:o, ueberfaellig:u };
+}
+function kundenStats(id){
+  var anz=0, netto=0, tage=0, bez=0, offenC=0;
+  for (var i=0;i<state.rechnungen.length;i++){
+    var r = state.rechnungen[i];
+    if (r.customerId !== id || r.status === 'storniert') continue;
+    anz++; netto += nettoVon(r);
+    if (r.status === 'bezahlt' && r.bezahltAm){ bez++; tage += diffDays(r.bezahltAm, r.datum); }
+    else offenC += bruttoVon(r);
+  }
+  return { anzahl:anz, nettoCent:netto, avgTage:bez ? Math.round(tage/bez) : null, offenCent:offenC };
+}
+
+/* =========================================================================
+   H — RENDER
+   ========================================================================= */
+
+var $ = function(id){ return document.getElementById(id); };
+
+function badgeFuer(r){
+  if (istUeberfaellig(r) && r.status === 'offen') return '<span class="ksrl-badge ueberfaellig">Überfällig</span>';
+  return '<span class="ksrl-badge ' + (STATUS_BADGE[r.status]||'') + '">' +
+    '<span class="sm-hide">' + esc(STATUS_LABEL[r.status]||r.status) + '</span>' +
+    '<span class="sm-only-inline">' + esc(STATUS_KURZ[r.status]||r.status) + '</span></span>';
+}
+
+function rechnungenTabelle(liste, sortierbar){
+  /* sm:true = Spalte fällt auf dem Handy weg. Übrig bleiben Nummer, Kunde, Brutto, Status —
+     alles Weitere steht im Detail. */
+  var head = [
+    { key:'id', label:'Nummer' }, { key:'datum', label:'Datum', sm:true }, { key:'kunde', label:'Kunde' },
+    { key:'netto', label:'Netto', num:true, sm:true }, { key:'brutto', label:'Brutto', num:true },
+    { key:'faellig', label:'Fällig', sm:true }, { key:'status', label:'Status' }
+  ];
+  var th = head.map(function(h){
+    var cls = (h.num ? 'num ' : '') + (h.sm ? 'sm-hide ' : '') + (sortierbar ? 'sortable' : '');
+    if (sortierbar && state.sort.key === h.key) cls += ' sort-' + state.sort.dir;
+    return '<th class="' + cls + '"' + (sortierbar ? ' data-sort="' + h.key + '"' : '') + '>' + h.label + '</th>';
+  }).join('');
+  var rows = liste.map(function(r){
+    return '<tr class="clickable" data-detail="' + esc(r.id) + '">' +
+      '<td class="id">' + esc(r.id) + '</td>' +
+      '<td class="sm-hide">' + fmtDatum(r.datum) + '</td>' +
+      '<td>' + esc(kunde(r.customerId).name) + '</td>' +
+      '<td class="num sm-hide">' + eur2(nettoVon(r)) + '</td>' +
+      '<td class="num">' + eur2(bruttoVon(r)) + '</td>' +
+      '<td class="sm-hide">' + fmtDatum(r.faelligAm) + '</td>' +
+      '<td>' + badgeFuer(r) + '</td></tr>';
+  }).join('');
+  return '<div class="ksrl-tablewrap"><table class="ksrl-table"><thead><tr>' + th + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+function renderDashboard(){
+  var s = stats();
+  $('ksrl-dash-cards').innerHTML =
+    card('', 'Rechnungen gesamt', s.gesamt.a, eur0(s.gesamt.s)) +
+    card('green', 'Bezahlt', s.bezahlt.a, eur0(s.bezahlt.s)) +
+    card('yellow', 'Offen', s.offen.a, eur0(s.offen.s)) +
+    card('red', 'Überfällig', s.ueberfaellig.a, eur0(s.ueberfaellig.s)) +
+    '<div class="ksrl-card"><div class="label">Nächste Nummer</div>' +
+      '<div class="value" style="font-size:18px;color:#ea591e;">RE-' + state.nextNr + '</div>' +
+      '<div class="sub">Wird bei nächster Rechnung vergeben</div></div>';
+
+  var letzte = state.rechnungen.slice().sort(function(a,b){
+    return a.datum === b.datum ? b.nr - a.nr : (a.datum < b.datum ? 1 : -1);
+  }).slice(0,5);
+  $('ksrl-dash-letzte').innerHTML = rechnungenTabelle(letzte, false);
+}
+function card(cls, label, value, sub){
+  return '<div class="ksrl-card ' + cls + '"><div class="label">' + esc(label) + '</div>' +
+    '<div class="value">' + value + '</div><div class="sub">' + sub + '</div></div>';
+}
+
+function gefilterteRechnungen(){
+  var suche = $('ksrl-f-suche').value.toLowerCase().trim();
+  var kid = $('ksrl-f-kunde').value, st = $('ksrl-f-status').value;
+  var jahr = $('ksrl-f-jahr').value, monat = $('ksrl-f-monat').value;
+  var nurU = $('ksrl-f-ueberfaellig').checked;
+  var l = state.rechnungen.filter(function(r){
+    if (suche){
+      var hit = r.id.toLowerCase().indexOf(suche) >= 0 || r.positionen.some(function(p){
+        return p.beschreibung.toLowerCase().indexOf(suche) >= 0;
+      });
+      if (!hit) return false;
+    }
+    if (kid && r.customerId !== kid) return false;
+    if (st && r.status !== st) return false;
+    if (jahr && r.datum.slice(0,4) !== jahr) return false;
+    if (monat && r.datum.slice(5,7) !== monat) return false;
+    if (nurU && !istUeberfaellig(r)) return false;
+    return true;
+  });
+  var k = state.sort.key, dir = state.sort.dir === 'asc' ? 1 : -1;
+  l.sort(function(a,b){
+    var va, vb;
+    if (k === 'id'){ va = a.nr; vb = b.nr; }
+    else if (k === 'datum'){ va = dnum(a.datum); vb = dnum(b.datum); }
+    else if (k === 'faellig'){ va = dnum(a.faelligAm); vb = dnum(b.faelligAm); }
+    else if (k === 'netto'){ va = nettoVon(a); vb = nettoVon(b); }
+    else if (k === 'brutto'){ va = bruttoVon(a); vb = bruttoVon(b); }
+    else if (k === 'kunde'){ return dir * kunde(a.customerId).name.localeCompare(kunde(b.customerId).name, 'de'); }
+    else { return dir * (STATUS_LABEL[a.status]||'').localeCompare(STATUS_LABEL[b.status]||'', 'de'); }
+    return dir * (va - vb);
+  });
+  return l;
+}
+
+function renderRechnungen(){
+  var liste = gefilterteRechnungen();
+  var gez = liste.filter(function(r){ return r.status !== 'storniert'; });
+  var netto = 0, brutto = 0, bezahlt = 0;
+  gez.forEach(function(r){
+    netto += nettoVon(r); brutto += bruttoVon(r);
+    if (r.status === 'bezahlt') bezahlt += bruttoVon(r);
+  });
+  var storno = liste.length - gez.length;
+  $('ksrl-rechnungen-summary').innerHTML = liste.length ?
+    '<div class="ksrl-infobar">' +
+      '<span><strong>' + gez.length + '</strong> Rechnung' + (gez.length === 1 ? '' : 'en') +
+        (storno ? ' <span style="color:#707070;">(+' + storno + ' storniert, nicht gezählt)</span>' : '') + '</span>' +
+      '<span class="ksrl-sep">|</span>' +
+      '<span>Netto <strong>' + eur0(netto) + '</strong></span>' +
+      '<span>Brutto <strong>' + eur0(brutto) + '</strong></span>' +
+      '<span class="ksrl-sep">|</span>' +
+      '<span>Bezahlt <strong class="ksrl-green">' + eur0(bezahlt) + '</strong></span>' +
+      '<span>Offen <strong class="ksrl-orange">' + eur0(brutto - bezahlt) + '</strong></span>' +
+    '</div>' : '';
+  $('ksrl-rechnungen-liste').innerHTML = liste.length ? rechnungenTabelle(liste, true) :
+    '<div class="ksrl-empty"><div class="icon">🔍</div><h3>Keine Rechnungen</h3><p>Filter anpassen oder neue Rechnung erstellen.</p></div>';
+
+  var zeigeDetail = !!state.detailId;
+  $('ksrl-rechnungen-liste-wrap').style.display = zeigeDetail ? 'none' : '';
+  $('ksrl-detail-wrap').innerHTML = zeigeDetail ? detailHtml(rechnungById(state.detailId)) : '';
+  if (zeigeDetail) skaliereFaksimile();
+}
+
+function rechnungById(id){ for (var i=0;i<state.rechnungen.length;i++) if (state.rechnungen[i].id === id) return state.rechnungen[i]; return null; }
+
+function detailHtml(r){
+  if (!r) return '';
+  var k = kunde(r.customerId), ueb = istUeberfaellig(r);
+  var posRows = r.positionen.map(function(p,i){
+    return '<tr><td class="sm-hide">' + (i+1) + '</td><td>' + esc(p.beschreibung) + '</td>' +
+      '<td class="num">' + num(p.menge) + ' ' + esc(p.einheit) + '</td>' +
+      '<td class="num sm-hide">' + eur2(p.satzCent) + '</td>' +
+      '<td class="num">' + eur2(p.menge * p.satzCent) + '</td></tr>';
+  }).join('');
+  var mahnHtml = r.mahnungen.length
+    ? '<h3 style="margin-top:18px;">Mahnungen</h3>' + r.mahnungen.map(function(m){
+        return '<div class="row"><span>' + fmtDatum(m.datum) + '</span><span>' + esc(STUFEN_LABEL[m.stufe]) + '</span></div>';
+      }).join('')
+    : '<h3 style="margin-top:18px;">Mahnungen</h3><div class="row"><span>Stand</span><span>keine Mahnung nötig</span></div>';
+  var reviewHtml = r.reviewNeeded
+    ? '<div class="ksrl-infobar" style="background:#fff3e0;border-left:3px solid #f9a825;"><span>⚠ <strong>Review nötig:</strong> ' +
+      esc(r.reviewNeeded) + ' — diese Rechnung wird vom Mahnlauf übersprungen, bis sie geklärt ist.</span></div>' : '';
+
+  return '<div class="ksrl-panel">' +
+    '<div class="ksrl-panel-head"><h2>Rechnung ' + esc(r.id) + '</h2>' +
+      '<button class="ksrl-btn secondary small" data-detail-back="1">← Zurück zur Liste</button></div>' +
+    '<div class="ksrl-panel-body">' +
+      reviewHtml +
+      '<div class="ksrl-aktionen">' +
+        (r.status !== 'bezahlt' && r.status !== 'storniert' ? '<button class="ksrl-btn green" data-bezahlt="' + esc(r.id) + '">Als bezahlt markieren</button>' : '') +
+        (r.status !== 'storniert' ? '<button class="ksrl-btn danger" data-storno="' + esc(r.id) + '">Stornieren</button>' : '') +
+      '</div>' +
+      '<div class="ksrl-detail-grid">' +
+        '<div class="ksrl-detail-block">' +
+          '<h3>Kunde</h3>' +
+          row('Firma', esc(k.name)) + row('Ansprechperson', 'z. Hd. Buchhaltung') +
+          row('Email', esc(kundeEmail(k.id))) + row('Ort', esc(k.ort)) +
+          '<h3 style="margin-top:18px;">Rechnung</h3>' +
+          row('Datum', fmtDatum(r.datum)) +
+          row('Fällig am', '<span style="' + (ueb ? 'color:#c62828;font-weight:600;' : '') + '">' + fmtDatum(r.faelligAm) + (ueb ? ' (überfällig)' : '') + '</span>') +
+          row('Leistungszeitraum', esc(r.leistungszeitraum)) +
+          row('Status', badgeFuer(r)) +
+          (r.bezahltAm ? row('Bezahlt am', fmtDatum(r.bezahltAm)) : '') +
+        '</div>' +
+        '<div class="ksrl-detail-block">' +
+          '<h3>Versand</h3>' +
+          row('Datum', fmtDatum(r.versand.datum)) + row('An', esc(r.versand.an)) +
+          row('CC (Buchhaltung)', esc(r.versand.cc.join(', '))) +
+          mahnHtml +
+        '</div>' +
+      '</div>' +
+      '<h3 style="margin-top:24px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#707070;">Positionen</h3>' +
+      '<div class="ksrl-tablewrap" style="margin-top:6px;"><table class="ksrl-table"><thead><tr>' +
+        '<th class="sm-hide">Pos</th><th>Beschreibung</th><th class="num">Menge</th><th class="num sm-hide">Einzelpreis</th><th class="num">Summe</th>' +
+      '</tr></thead><tbody>' + posRows + '</tbody></table></div>' +
+      '<div class="ksrl-summen" style="margin-top:12px;max-width:320px;margin-left:auto;">' +
+        '<div><span>Netto</span><span>' + eur2(nettoVon(r)) + '</span></div>' +
+        '<div><span>USt (20%)</span><span>' + eur2(ustVon(r)) + '</span></div>' +
+        '<div class="brutto"><span>Rechnungsbetrag</span><span>' + eur2(bruttoVon(r)) + '</span></div>' +
+      '</div>' +
+      '<h3 style="margin-top:24px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#707070;">Rechnungs-PDF (Vorschau)</h3>' +
+      '<p class="ksrl-demo-note sm-only" style="margin-bottom:0;">Seitlich wischen, um die ganze Seite zu sehen.</p>' +
+      faksimileHtml(r) +
+    '</div></div>';
+}
+function row(l, v){ return '<div class="row"><span>' + l + '</span><span>' + v + '</span></div>'; }
+
+function faksimileHtml(r){
+  var k = kunde(r.customerId);
+  var posRows = r.positionen.map(function(p,i){
+    return '<tr><td class="num">' + (i+1) + '</td><td>' + esc(p.beschreibung) + '</td>' +
+      '<td class="num">' + num(p.menge) + '</td><td class="num">' + eur2(p.satzCent) + '</td>' +
+      '<td class="num">' + eur2(p.menge * p.satzCent) + '</td></tr>';
+  }).join('');
+  return '<div class="ksrl-fak-wrap"><div class="ksrl-fak-scaler" id="ksrl-fak-scaler"><div class="ksrl-fak" id="ksrl-fak">' +
+    '<div class="fak-header"><div class="fak-mark">B</div>' +
+      '<div class="fak-head-right"><div class="fak-head-name">' + esc(FIRMA.name) + '</div>' +
+      '<div class="fak-head-slogan">' + esc(FIRMA.slogan) + '</div></div></div>' +
+    '<div class="fak-empf">' +
+      '<div class="fak-adresszeile">' + esc(FIRMA.name) + ' &middot; ' + esc(FIRMA.adresse.street) + ' &middot; ' + esc(FIRMA.adresse.zip) + ' ' + esc(FIRMA.adresse.city) + '</div>' +
+      '<div class="firma">' + esc(k.name) + '</div><div>z. Hd. Buchhaltung</div>' +
+      '<div>' + esc(k.str) + '</div><div>' + esc(k.ort) + '</div></div>' +
+    '<div class="fak-titel"><h1>Rechnung</h1><table class="fak-meta">' +
+      '<tr><td>Rechnungsnummer</td><td class="wert">' + esc(r.id) + '</td></tr>' +
+      '<tr><td>Rechnungsdatum</td><td class="wert">' + fmtDatum(r.datum) + '</td></tr>' +
+      '<tr><td>Fällig am</td><td class="wert">' + fmtDatum(r.faelligAm) + '</td></tr>' +
+      '<tr><td>Leistungszeitraum</td><td class="wert">' + esc(r.leistungszeitraum) + '</td></tr>' +
+    '</table></div>' +
+    '<div class="fak-intro">Sehr geehrte Damen und Herren,<br>vielen Dank für Ihr Vertrauen. Wir erlauben uns, Ihnen die folgenden Leistungen in Rechnung zu stellen:</div>' +
+    '<table class="fak-pos"><thead><tr><th style="width:30px">Pos</th><th>Beschreibung</th>' +
+      '<th class="num" style="width:68px">Menge</th><th class="num" style="width:106px">Einzelpreis<span class="lbl-orange">(netto)</span></th>' +
+      '<th class="num" style="width:91px">Betrag</th></tr></thead><tbody>' + posRows + '</tbody></table>' +
+    '<table class="fak-sum">' +
+      '<tr><td class="label">Netto-Summe</td><td class="num">' + eur2(nettoVon(r)) + '</td></tr>' +
+      '<tr><td class="label">USt. (20%)</td><td class="num">' + eur2(ustVon(r)) + '</td></tr>' +
+      '<tr class="brutto"><td>Rechnungsbetrag</td><td class="num">' + eur2(bruttoVon(r)) + '</td></tr></table>' +
+    '<div class="fak-fuss">' +
+      '<div class="fak-zahlung"><div class="zi"><div class="lbl">Zahlungsinformation</div>' +
+        'Bitte überweisen Sie den Rechnungsbetrag bis spätestens <span class="frist">' + fmtDatum(r.faelligAm) + '</span>:' +
+        '<div class="fak-konto">' +
+          '<div><span>Empfänger</span><strong>' + esc(FIRMA.bank.kontoinhaber) + '</strong></div>' +
+          '<div><span>Bank</span><strong>' + esc(FIRMA.bank.name) + '</strong></div>' +
+          '<div><span>IBAN</span><strong>' + esc(FIRMA.bank.iban) + '</strong></div>' +
+          '<div><span>BIC</span><strong>' + esc(FIRMA.bank.bic) + '</strong></div>' +
+        '</div>' +
+        '<div class="fak-vzweck">Verwendungszweck: <code>' + esc(r.id) + '</code></div>' +
+        '<div style="margin-top:8px;font-size:9.3px;color:#707070;">Bankdaten in der Vorschau maskiert.</div>' +
+      '</div>' +
+      '<div class="fak-qr"><div class="fak-qr-box"><div class="fak-qr-grid"></div>' +
+        '<div class="fak-qr-finder tl"></div><div class="fak-qr-finder tr"></div><div class="fak-qr-finder bl"></div></div>' +
+        '<div class="fak-qr-label">EPC-QR · Demo<br>kein gültiger Zahlungscode</div></div>' +
+      '</div>' +
+      '<div class="fak-gruss">Mit freundlichen Grüßen<br><strong>' + esc(FIRMA.geschaeftsfuehrer) + '</strong></div>' +
+    '</div>' +
+    '<div class="fak-footer">' +
+      '<div class="col"><div class="firma-name">' + esc(FIRMA.name) + '</div>' +
+        esc(FIRMA.geschaeftsfuehrer) + '<br>' + esc(FIRMA.adresse.street) + ', ' + esc(FIRMA.adresse.zip) + ' ' + esc(FIRMA.adresse.city) + '<br>' +
+        'Firmenbuchnummer: ' + esc(FIRMA.firmenbuch) + '<br>UID-Nummer: ' + esc(FIRMA.uid) + '</div>' +
+      '<div class="col center"><span class="link">' + esc(FIRMA.kontakt.email) + '</span><br>' +
+        esc(FIRMA.kontakt.telefon) + '<br><span class="link">' + esc(FIRMA.kontakt.web) + '</span></div>' +
+      '<div class="col right">Kontoinhaber: ' + esc(FIRMA.bank.kontoinhaber) + '<br>IBAN: ' + esc(FIRMA.bank.iban) +
+        '<br>BIC: ' + esc(FIRMA.bank.bic) + '<br>Bank: ' + esc(FIRMA.bank.name) + '</div>' +
+    '</div>' +
+  '</div></div></div>';
+}
+
+function skaliereFaksimile(){
+  var fak = $('ksrl-fak'), scaler = $('ksrl-fak-scaler');
+  if (!fak || !scaler) return;
+  var breite = scaler.parentNode.clientWidth - 24;
+  var s = Math.min(1, breite / 794);
+  /* Unter ~0,58 wird die Rechnung unleserlich. Dann lieber im Kasten seitlich wischen,
+     statt eine Briefmarke zu zeigen — der Wrapper scrollt horizontal. */
+  if (s < 0.58) s = 0.58;
+  fak.style.transform = 'scale(' + s + ')';
+  scaler.style.height = (1123 * s) + 'px';
+  scaler.style.width = (794 * s) + 'px';
+}
+
+/* --- Mahnungen --- */
+function renderMahnungen(){
+  var stichtag = state.mahnStichtag;
+  var liste = faelligeMahnungen(stichtag);
+  var btn = $('ksrl-mahn-all');
+  btn.disabled = liste.length === 0;
+  btn.textContent = 'Alle senden (' + liste.length + ')';
+
+  var box = $('ksrl-mahn-liste');
+  if (!liste.length){
+    box.innerHTML = '<div class="ksrl-empty"><div class="icon">✓</div><h3>Nichts zu mahnen</h3>' +
+      '<p>Zum Stichtag <strong>' + fmtDatum(stichtag) + '</strong> ist keine Rechnung für eine Mahnung fällig.</p></div>';
+  } else {
+    var rows = liste.map(function(m){
+      var extra = m.pauschaleCent > 0 || m.zinsenCent > 0
+        ? '<br><span class="sm-hide" style="font-size:11px;color:#707070;">+ ' + eur2(m.pauschaleCent) + ' Pauschale + ' + eur2(m.zinsenCent) + ' Zinsen</span>' : '';
+      var bisher = m.r.mahnungen.length;
+      /* Auf dem Handy wandert die Rechnungsnummer in die Kundenzelle — sonst passt die
+         Zeile mit dem „Senden"-Button nicht auf den Schirm. */
+      return '<tr>' +
+        '<td class="id sm-hide">' + esc(m.r.id) + '</td>' +
+        '<td>' + esc(kunde(m.r.customerId).name) +
+          '<span class="sm-only id" style="font-size:11.5px;">' + esc(m.r.id) + '</span>' +
+          '<br><span class="sm-hide" style="font-size:11px;color:#707070;">' + esc(kundeEmail(m.r.customerId)) + '</span></td>' +
+        '<td><span class="ksrl-badge ' + STUFEN_BADGE[m.stufe.stufe] + '">' +
+          '<span class="sm-hide">' + esc(STUFEN_LABEL[m.stufe.stufe]) + '</span>' +
+          '<span class="sm-only-inline">' + esc(STUFEN_KURZ[m.stufe.stufe]) + '</span></span>' +
+          (bisher ? '<br><span style="font-size:10px;color:#707070;">' + bisher + ' bisher</span>' : '') + '</td>' +
+        '<td class="num sm-hide">' + m.verzug + 'd</td>' +
+        '<td class="num sm-hide">' + eur2(m.bruttoCent) + '</td>' +
+        '<td class="num"><strong>' + eur2(m.gesamtCent) + '</strong>' + extra + '</td>' +
+        '<td class="sm-hide">' + (m.neueFrist ? fmtDatum(m.neueFrist) : '—') + '</td>' +
+        '<td><button class="ksrl-btn small" data-mahn="' + esc(m.r.id) + '">Senden</button></td>' +
+      '</tr>';
+    }).join('');
+    box.innerHTML =
+      '<div class="ksrl-infobar"><span>Stichtag: <strong>' + fmtDatum(stichtag) + '</strong> · ' + liste.length +
+        ' Mahnung' + (liste.length === 1 ? '' : 'en') + ' fällig. Vorschau prüfen, dann einzeln „Senden" oder „Alle senden".</span></div>' +
+      '<p class="ksrl-demo-note">Demo: „Senden" öffnet nur einen Bestätigungsdialog und schaltet den Status weiter — es geht keine Mail hinaus.</p>' +
+      '<div class="ksrl-tablewrap"><table class="ksrl-table compact"><thead><tr>' +
+        '<th class="sm-hide">Nummer</th><th>Kunde</th><th>Stufe</th><th class="num sm-hide">Verzug</th><th class="num sm-hide">Brutto</th>' +
+        '<th class="num">Gesamt</th><th class="sm-hide">Neue Frist</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  /* Zweite Tabelle: was automatisch schon raus ist bzw. als nächstes fällig wird */
+  var kommend = [];
+  for (var i=0;i<state.rechnungen.length;i++){
+    var r = state.rechnungen[i];
+    if (r.status === 'bezahlt' || r.status === 'storniert') continue;
+    var offenTage = -verzugTage(r, stichtag);
+    if (naechsteMahnstufe(r, stichtag)) continue;
+    var naechste = null, wann = null;
+    for (var j=0;j<MAHN_KASKADE.length;j++){
+      var s = MAHN_KASKADE[j];
+      if (s.statusVorher.indexOf(r.status) >= 0 && verzugTage(r, stichtag) < s.tage){ naechste = s; wann = addDays(r.faelligAm, s.tage); break; }
+    }
+    kommend.push({ r:r, naechste:naechste, wann:wann, offenTage:offenTage });
+  }
+  $('ksrl-mahn-vorschau').innerHTML = kommend.length ?
+    '<div class="ksrl-tablewrap"><table class="ksrl-table"><thead><tr>' +
+      '<th>Nummer</th><th>Kunde</th><th class="sm-hide">Aktueller Stand</th><th class="sm-hide">Fällig am</th><th>Nächster Schritt</th><th>am</th>' +
+    '</tr></thead><tbody>' + kommend.map(function(x){
+      return '<tr><td class="id">' + esc(x.r.id) + '</td><td>' + esc(kunde(x.r.customerId).name) + '</td>' +
+        '<td class="sm-hide">' + badgeFuer(x.r) + (x.r.reviewNeeded ? ' <span style="font-size:11px;color:#f9a825;">Review</span>' : '') + '</td>' +
+        '<td class="sm-hide">' + fmtDatum(x.r.faelligAm) + '</td>' +
+        '<td>' + (x.r.reviewNeeded ? '<span style="color:#707070;">pausiert (Bank-Review)</span>' : (x.naechste ?
+          '<span class="sm-hide">' + esc(STUFEN_LABEL[x.naechste.stufe]) + '</span><span class="sm-only-inline">' + esc(STUFEN_KURZ[x.naechste.stufe]) + '</span>' +
+          (x.naechste.automatisch ? ' <span class="sm-hide" style="font-size:11px;color:#2e7d32;">automatisch</span>' : ' <span class="sm-hide" style="font-size:11px;color:#707070;">nach Freigabe</span>') : '—')) + '</td>' +
+        '<td>' + (x.r.reviewNeeded ? '—' : (x.wann ? fmtDatum(x.wann) : '—')) + '</td></tr>';
+    }).join('') + '</tbody></table></div>' :
+    '<div class="ksrl-empty"><div class="icon">✓</div><h3>Keine offenen Posten</h3></div>';
+}
+
+/* --- Bank --- */
+function baueReport(){
+  var matches = [], review = [], unmatched = [], bereits = [];
+  var ziele = ['RE-2440','RE-2455','RE-2478'];
+  for (var i=0;i<ziele.length;i++){
+    var r = rechnungById(ziele[i]);
+    if (r && r.status !== 'bezahlt' && r.status !== 'storniert'){
+      matches.push({ r:r, betragCent:bruttoVon(r), datum:addDays(TODAY, -1 - i), zweck:'Rechnung ' + r.id + ' Zahlung' });
+    }
+  }
+  var teil = rechnungById('RE-2412');
+  if (teil && teil.status !== 'bezahlt' && !teil.reviewNeeded){
+    review.push({ r:teil, betragCent:1200000, datum:addDays(TODAY,-3),
+      grund:'Teilzahlung: ' + eur2(1200000) + ' statt ' + eur2(bruttoVon(teil)) });
+  }
+  unmatched.push({ gegen:kunde('DIV').name, betragCent:485000, datum:addDays(TODAY,-4), zweck:'Zahlung August, keine Rechnungsnummer angegeben' });
+  var alt = state.rechnungen.filter(function(r){ return r.status === 'bezahlt'; })
+    .sort(function(a,b){ return a.bezahltAm < b.bezahltAm ? 1 : -1; })[0];
+  if (alt) bereits.push({ r:alt, betragCent:bruttoVon(alt), datum:alt.bezahltAm });
+  return {
+    matches:matches, review:review, unmatched:unmatched, bereits:bereits,
+    insgesamt: matches.length + review.length + unmatched.length + bereits.length + 5,
+    duplikate:3, ausgaenge:2
+  };
+}
+
+function renderBankReport(){
+  var box = $('ksrl-bank-report');
+  if (!state.bankReport){ box.innerHTML = ''; return; }
+  var rep = state.bankReport.rep, dry = state.bankReport.dry;
+  var zeile = function(badge, cls, id, gegen, betrag, datum, text, textCls){
+    return '<tr><td><span class="ksrl-badge ' + cls + '">' + badge + '</span></td>' +
+      '<td class="id">' + (id || '-') + '</td><td class="sm-hide">' + esc(gegen) + '</td>' +
+      '<td class="num">' + eur2(betrag) + '</td><td class="sm-hide">' + fmtDatum(datum) + '</td>' +
+      '<td style="font-size:11px;color:' + (textCls || '#707070') + ';">' + esc(text) + '</td></tr>';
+  };
+  var rows = '';
+  rep.matches.forEach(function(m){ rows += zeile('✓ MATCH','bezahlt', esc(m.r.id), kunde(m.r.customerId).name, m.betragCent, m.datum, m.zweck); });
+  rep.review.forEach(function(m){ rows += zeile('⚠ REVIEW','m1', esc(m.r.id), kunde(m.r.customerId).name, m.betragCent, m.datum, m.grund, '#c62828'); });
+  rep.unmatched.forEach(function(m){ rows += zeile('? ohne ID','storniert', '', m.gegen, m.betragCent, m.datum, m.zweck); });
+  rep.bereits.forEach(function(m){ rows += zeile('≡ bezahlt','bezahlt', esc(m.r.id), kunde(m.r.customerId).name, m.betragCent, m.datum, 'bereits in vorherigem Import bezahlt'); });
+
+  box.innerHTML =
+    '<div class="ksrl-report ' + (dry ? 'dry' : 'done') + '">' +
+      '<div class="meta">' + (dry ? '<strong>DRY RUN</strong> — keine Änderungen gespeichert' : '<strong>IMPORTIERT</strong> — Rechnungen wurden aktualisiert') +
+        ' | Quelle: <strong>Revolut Business</strong> | Konto: <strong>' + esc(FIRMA.bank.iban) + '</strong>' +
+        ' | Zeitraum: ' + fmtDatum(addDays(TODAY,-90)) + ' - ' + fmtDatum(TODAY) + '</div>' +
+      '<div class="zaehler">' +
+        '<span><strong>' + rep.insgesamt + '</strong> Transaktionen total</span><span class="ksrl-sep">|</span>' +
+        '<span><strong class="ksrl-green">' + rep.matches.length + '</strong> automatisch matched</span>' +
+        '<span><strong style="color:#c2185b;">' + rep.review.length + '</strong> brauchen Review</span>' +
+        '<span><strong style="color:#707070;">' + rep.unmatched.length + '</strong> ohne Rechnungs-ID</span>' +
+        '<span><strong>' + rep.bereits.length + '</strong> schon bezahlt</span>' +
+        '<span><strong>' + rep.duplikate + '</strong> Duplikate übersprungen</span>' +
+        '<span><strong>' + rep.ausgaenge + '</strong> Ausgänge</span>' +
+      '</div>' +
+      (dry && (rep.matches.length || rep.review.length) ?
+        '<div style="margin-top:12px;"><button class="ksrl-btn" id="ksrl-btn-import">✓ Echt importieren (Rechnungen als bezahlt markieren)</button></div>' : '') +
+    '</div>' +
+    (rows ? '<div class="ksrl-tablewrap" style="margin-top:14px;"><table class="ksrl-table"><thead><tr>' +
+      '<th>Ergebnis</th><th>Rechnung</th><th class="sm-hide">Absender</th><th class="num">Betrag</th><th class="sm-hide">Datum</th>' +
+      '<th><span class="sm-hide">Verwendungszweck / Grund</span><span class="sm-only-inline">Grund</span></th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div>' : '');
+}
+
+function renderBankTx(){
+  var tx = state.bankTx;
+  var rows = tx.map(function(t){
+    var richtung = t.eingang ? '<span class="ksrl-green">↓</span>' : '<span style="color:#707070;">↑</span>';
+    var match = t.typ === 'match' ? '<span class="ksrl-badge bezahlt">→ ' + esc(t.rechnungId) + '</span>'
+      : t.typ === 'review_needed' ? '<span class="ksrl-badge m1">Review</span>'
+      : t.typ === 'bereits_bezahlt' ? '<span class="ksrl-badge bezahlt">≡</span>'
+      : t.typ === 'unmatched' ? '<span class="ksrl-badge storniert">?</span>'
+      : '<span style="color:#707070;font-size:11px;">Ausgang</span>';
+    return '<tr><td>' + richtung + ' ' + fmtDatum(t.datum) + '</td><td>' + esc(t.gegen) + '</td>' +
+      '<td class="num">' + eur2(t.betragCent) + '</td><td>' + match + '</td>' +
+      '<td class="sm-hide" style="font-size:11px;color:#707070;">' + esc(t.zweck) + '</td></tr>';
+  }).join('');
+  $('ksrl-bank-tx').innerHTML =
+    '<div style="font-size:11px;color:#707070;margin-bottom:6px;">Letzte ' + tx.length + ' Transaktionen · Letzter Import: ' + fmtDatum(TODAY) + '</div>' +
+    '<div class="ksrl-tablewrap"><table class="ksrl-table"><thead><tr>' +
+      '<th>Datum</th><th>Gegenüber</th><th class="num">Betrag</th><th>Match</th><th class="sm-hide">Verwendungszweck</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+/* --- Kunden --- */
+function renderKunden(){
+  var suche = $('ksrl-k-suche').value.toLowerCase().trim();
+  var liste = CUSTOMERS.filter(function(k){
+    return !suche || k.name.toLowerCase().indexOf(suche) >= 0 || k.id.toLowerCase().indexOf(suche) >= 0;
+  });
+  var rows = liste.map(function(k){
+    var s = kundenStats(k.id);
+    var ampel = s.avgTage === null ? '' : (s.avgTage <= 30 ? 'ksrl-green' : (s.avgTage <= 45 ? '' : 'ksrl-red'));
+    return '<tr class="clickable" data-kunde="' + esc(k.id) + '">' +
+      '<td class="id">' + esc(k.id) + '</td>' +
+      '<td>' + esc(k.name) + '<br><span style="font-size:11px;color:#707070;">z. Hd. Buchhaltung</span></td>' +
+      '<td class="sm-hide">' + esc(kundeEmail(k.id)) + '</td>' +
+      '<td class="sm-hide">' + esc(k.ort) + '</td>' +
+      '<td class="num sm-hide">' + ZAHLUNGSZIEL + ' Tage</td>' +
+      '<td class="num ' + ampel + '">' + (s.avgTage === null ? '—' : s.avgTage + ' Tage') + '</td>' +
+      '<td class="num">' + eur0(s.offenCent) + '</td>' +
+      '<td class="sm-hide"><span class="ksrl-badge aktiv">aktiv</span></td></tr>';
+  }).join('');
+  $('ksrl-kunden-liste').innerHTML = liste.length ?
+    '<div class="ksrl-tablewrap"><table class="ksrl-table"><thead><tr>' +
+      '<th>ID</th><th>Firma</th><th class="sm-hide">Email</th><th class="sm-hide">Ort</th><th class="num sm-hide">Zahlungsziel</th>' +
+      '<th class="num">Ø Zahlungsdauer</th><th class="num">Offen</th><th class="sm-hide">Status</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table></div>' :
+    '<div class="ksrl-empty"><div class="icon">🔍</div><h3>Kein Kunde gefunden</h3></div>';
+
+  var k = state.kundeDetail ? kunde(state.kundeDetail) : null;
+  $('ksrl-kunde-detail').innerHTML = k ? kundeFormHtml(k) : '';
+}
+
+function kundeFormHtml(k){
+  var s = kundenStats(k.id);
+  var teile = k.ort.split(' ');
+  return '<div class="ksrl-panel" style="margin-top:18px;">' +
+    '<div class="ksrl-panel-head"><h2>' + esc(k.name) + '</h2>' +
+      '<button class="ksrl-btn secondary small" data-kunde-back="1">← Zurück zur Liste</button></div>' +
+    '<div class="ksrl-panel-body">' +
+      '<div class="ksrl-form-grid">' +
+        feld('Kunden-ID *', k.id, 'text', true) + feld('Firmenname *', k.name) +
+        feld('Ansprechperson', 'z. Hd. Buchhaltung') + feld('Email', kundeEmail(k.id)) +
+        '<div class="ksrl-field full"><label>Straße</label><input value="' + esc(k.str) + '"></div>' +
+        feld('PLZ', teile[0]) + feld('Stadt', teile.slice(1).join(' ')) +
+        feld('UID-Nummer', 'ATU00000000') + feld('Land', 'Österreich') +
+        feld('Zahlungsziel (Tage)', ZAHLUNGSZIEL) +
+        '<div class="ksrl-field"><label>Ø Zahlungsdauer (berechnet)</label><input value="' +
+          (s.avgTage === null ? '—' : s.avgTage + ' Tage') + '" readonly><span class="ksrl-hint">Aus den bezahlten Rechnungen dieses Kunden.</span></div>' +
+        '<div class="ksrl-field full"><label>Notiz</label><textarea rows="2">' +
+          (k.id === 'DIV' ? 'Sammelkonto für viele Kleinkunden (Demo-Vereinfachung).' : '') + '</textarea></div>' +
+      '</div>' +
+      '<div class="ksrl-summen" style="max-width:340px;margin-left:auto;">' +
+        '<div><span>Rechnungen 2026</span><span>' + s.anzahl + '</span></div>' +
+        '<div><span>Umsatz netto</span><span>' + eur0(s.nettoCent) + '</span></div>' +
+        '<div class="brutto"><span>Offener Betrag</span><span>' + eur0(s.offenCent) + '</span></div>' +
+      '</div>' +
+      '<div style="margin-top:16px;display:flex;justify-content:flex-end;gap:10px;">' +
+        '<button class="ksrl-btn secondary" data-kunde-back="1">Abbrechen</button>' +
+        '<button class="ksrl-btn" data-demo="Kundendaten speichern">Speichern</button></div>' +
+    '</div></div>';
+}
+function feld(label, value, typ, ro){
+  return '<div class="ksrl-field"><label>' + esc(label) + '</label><input value="' + esc(value) + '"' + (ro ? ' readonly' : '') + '></div>';
+}
+
+/* --- Einstellungen --- */
+function renderEinstellungen(){
+  $('ksrl-einstellungen').innerHTML =
+    '<h2 class="ksrl-h3sec">Firmen-Stammdaten</h2>' +
+    '<div class="ksrl-form-grid">' +
+      feld('Firmenname', FIRMA.name) + feld('Geschäftsführung', FIRMA.geschaeftsfuehrer) +
+      '<div class="ksrl-field full"><label>Slogan</label><input value="' + esc(FIRMA.slogan) + '"></div>' +
+      feld('Straße', FIRMA.adresse.street) +
+      '<div class="ksrl-field"><label>PLZ + Ort</label><div style="display:flex;gap:8px;">' +
+        '<input value="' + esc(FIRMA.adresse.zip) + '" style="width:80px;"><input value="' + esc(FIRMA.adresse.city) + '" style="flex:1;"></div></div>' +
+      feld('UID-Nummer', FIRMA.uid) + feld('Firmenbuch', FIRMA.firmenbuch) +
+      feld('Email (Absender)', FIRMA.kontakt.email) + feld('Telefon', FIRMA.kontakt.telefon) +
+      '<div class="ksrl-field full"><label>Web</label><input value="' + esc(FIRMA.kontakt.web) + '"></div>' +
+    '</div>' +
+    '<h2 class="ksrl-h3sec">Bankverbindung</h2>' +
+    '<div class="ksrl-form-grid">' +
+      feld('Kontoinhaber', FIRMA.bank.kontoinhaber) + feld('Bank-Name', FIRMA.bank.name) +
+      feld('IBAN', FIRMA.bank.iban) + feld('BIC', FIRMA.bank.bic) +
+    '</div>' +
+    '<p class="ksrl-demo-note">Bankdaten sind in dieser Vorschau bewusst maskiert.</p>' +
+    '<h2 class="ksrl-h3sec">Buchhaltung (Auto-CC)</h2>' +
+    '<div class="ksrl-form-grid"><div class="ksrl-field full"><label>Buchhaltungs-Email</label>' +
+      '<input value="' + esc(FIRMA.buchhaltung.email) + '"><span class="ksrl-hint">Bekommt jede Rechnung + Mahnung automatisch als CC.</span></div></div>' +
+    '<h2 class="ksrl-h3sec">Standard-Werte</h2>' +
+    '<div class="ksrl-form-grid">' +
+      feld('USt-Satz (%)', '20') + feld('Zahlungsziel (Tage)', ZAHLUNGSZIEL) +
+      feld('Verzugszinsen (% p.a.)', String(VERZUGSZINSEN_SATZ_PA).replace('.', ',')) +
+      feld('Mahnpauschale ab 1. Mahnung (€)', '40,00') +
+    '</div>' +
+    '<div style="margin-top:20px;display:flex;justify-content:flex-end;">' +
+      '<button class="ksrl-btn" data-demo="Firmendaten speichern">Speichern</button></div>' +
+    '<div style="margin-top:30px;border-top:1px solid #d8d2cc;padding-top:22px;">' +
+      '<h2 class="ksrl-h3sec" style="margin-top:0;">Rechnungsnummerierung</h2>' +
+      '<div class="ksrl-form-grid">' +
+        feld('Präfix', NUMMERIERUNG.praefix) + feld('Nächste Nummer', state.nextNr) +
+        '<div class="ksrl-field"><label>Min-Inkrement</label><input value="' + NUMMERIERUNG.minInkrement + '"><span class="ksrl-hint">1 = fortlaufend +1</span></div>' +
+        '<div class="ksrl-field"><label>Max-Inkrement</label><input value="' + NUMMERIERUNG.maxInkrement + '"><span class="ksrl-hint">&gt; Min = Zufalls-Inkrement, damit Kunden nicht auf das Rechnungsvolumen schließen können</span></div>' +
+      '</div>' +
+      '<div style="margin-top:14px;display:flex;justify-content:flex-end;">' +
+        '<button class="ksrl-btn" data-demo="Nummerierung speichern">Nummerierung speichern</button></div>' +
+    '</div>';
+}
+
+/* --- Neue Rechnung --- */
+function renderNeueRechnung(){
+  var sel = $('ksrl-nr-kunde');
+  if (sel.options.length <= 1){
+    sel.innerHTML = '<option value="">— Kunde wählen —</option>' + CUSTOMERS.map(function(k){
+      return '<option value="' + esc(k.id) + '">' + esc(k.name) + ' (' + esc(k.id) + ')</option>';
+    }).join('');
+  }
+  if (!$('ksrl-poslist').children.length) addPosZeile();
+  updateNeuSummen();
+}
+function addPosZeile(){
+  var d = document.createElement('div');
+  d.className = 'ksrl-pos-row';
+  d.innerHTML =
+    '<input type="text" class="pos-text" aria-label="Beschreibung" placeholder="Beschreibung, z.B. Produkt A">' +
+    '<input type="number" class="pos-menge" aria-label="Menge" min="0" step="1" placeholder="Menge">' +
+    '<input type="number" class="pos-preis" aria-label="Einzelpreis netto" min="0" step="0.01" placeholder="Einzelpreis netto">' +
+    '<input type="text" class="pos-summe" aria-label="Positionssumme" readonly value="€ 0,00">' +
+    '<button type="button" class="pos-del" title="Entfernen">×</button>';
+  $('ksrl-poslist').appendChild(d);
+}
+function neuePositionen(){
+  var out = [];
+  var rows = $('ksrl-poslist').querySelectorAll('.ksrl-pos-row');
+  for (var i=0;i<rows.length;i++){
+    var t = rows[i].querySelector('.pos-text').value.trim();
+    var m = Number(rows[i].querySelector('.pos-menge').value) || 0;
+    var p = Math.round((Number(rows[i].querySelector('.pos-preis').value) || 0) * 100);
+    rows[i].querySelector('.pos-summe').value = eur2(m * p);
+    if (t && m > 0 && p > 0) out.push({ beschreibung:t, menge:m, einheit:'Stk', satzCent:p });
+  }
+  return out;
+}
+function updateNeuSummen(){
+  var pos = neuePositionen(), netto = 0;
+  pos.forEach(function(p){ netto += p.menge * p.satzCent; });
+  var ust = Math.round(netto * UST_SATZ);
+  $('ksrl-vor-netto').textContent = eur2(netto);
+  $('ksrl-vor-ust').textContent = eur2(ust);
+  $('ksrl-vor-brutto').textContent = eur2(netto + ust);
+}
+
+/* =========================================================================
+   I — AKTIONEN (alles Demo, nichts verlässt die Seite)
+   ========================================================================= */
+
+function demoConfirm(text){
+  return window.confirm(text + '\n\nHinweis: Dies ist eine reine Vorschau-Demo. Es wird nichts wirklich versendet, importiert oder gespeichert.');
+}
+function toast(text, typ){
+  var box = $('ksrl-toasts');
+  var el = document.createElement('div');
+  el.className = 'ksrl-toast ' + (typ || '');
+  el.textContent = text;
+  box.appendChild(el);
+  window.setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 4500);
+}
+
+function markiereBezahlt(id){
+  var r = rechnungById(id);
+  if (!r || !demoConfirm('Rechnung ' + id + ' als bezahlt markieren?')) return;
+  r.status = 'bezahlt'; r.bezahltAm = TODAY; r.reviewNeeded = null;
+  toast(id + ' als bezahlt markiert', 'success');
+  state.detailId = null;
+  renderAll();
+}
+function storniere(id){
+  var r = rechnungById(id);
+  if (!r || !demoConfirm('Rechnung ' + id + ' stornieren?')) return;
+  r.status = 'storniert'; r.storniert = { datum:TODAY };
+  toast(id + ' storniert', 'success');
+  state.detailId = null;
+  renderAll();
+}
+function sendeMahnung(id){
+  var r = rechnungById(id);
+  if (!r) return;
+  var z = mahnZeile(r, state.mahnStichtag);
+  if (!z) return;
+  var ziel = $('ksrl-mahn-test').value.trim() || kundeEmail(r.customerId);
+  if (!demoConfirm(STUFEN_LABEL[z.stufe.stufe] + ' für ' + id + ' an ' + ziel + ' senden?')) return;
+  r.mahnungen.push({ stufe:z.stufe.stufe, datum:state.mahnStichtag });
+  r.status = z.stufe.statusNachher;
+  toast(id + ': ' + STUFEN_LABEL[z.stufe.stufe] + ' versandt an ' + ziel, 'success');
+  renderAll();
+}
+function sendeAlleMahnungen(){
+  var liste = faelligeMahnungen(state.mahnStichtag);
+  if (!liste.length) return;
+  var ziel = $('ksrl-mahn-test').value.trim();
+  if (!demoConfirm('Alle ' + liste.length + ' fälligen Mahnungen ' + (ziel ? 'an Test-Adresse ' + ziel : 'an die Kunden') + ' senden?')) return;
+  liste.forEach(function(z){
+    z.r.mahnungen.push({ stufe:z.stufe.stufe, datum:state.mahnStichtag });
+    z.r.status = z.stufe.statusNachher;
+  });
+  toast(liste.length + ' Mahnung' + (liste.length === 1 ? '' : 'en') + ' versandt', 'success');
+  renderAll();
+}
+function bankSync(){
+  var btn = $('ksrl-btn-sync');
+  btn.disabled = true; btn.textContent = '↻ Synce mit Revolut...';
+  $('ksrl-bank-report').innerHTML = '<div class="ksrl-empty" style="padding:26px;">Hole Buchungen aus der Bank… (Dry-Run)</div>';
+  window.setTimeout(function(){
+    state.bankReport = { rep:baueReport(), dry:true };
+    btn.disabled = false; btn.textContent = '↻ Jetzt mit Revolut syncen';
+    renderBankReport();
+    toast('Dry-Run fertig — nichts verändert. Report prüfen, dann importieren.', 'info');
+  }, 600);
+}
+function bankImport(){
+  if (!state.bankReport || !demoConfirm('Wirklich importieren? Gematchte Rechnungen werden als bezahlt markiert.')) return;
+  var rep = state.bankReport.rep, i;
+  for (i=0;i<rep.matches.length;i++){
+    rep.matches[i].r.status = 'bezahlt';
+    rep.matches[i].r.bezahltAm = rep.matches[i].datum;
+    state.bankTx.unshift({ datum:rep.matches[i].datum, gegen:kunde(rep.matches[i].r.customerId).name,
+      betragCent:rep.matches[i].betragCent, eingang:true, zweck:rep.matches[i].zweck, typ:'match', rechnungId:rep.matches[i].r.id });
+  }
+  for (i=0;i<rep.review.length;i++){
+    rep.review[i].r.reviewNeeded = rep.review[i].grund;
+    state.bankTx.unshift({ datum:rep.review[i].datum, gegen:kunde(rep.review[i].r.customerId).name,
+      betragCent:rep.review[i].betragCent, eingang:true, zweck:'Teilzahlung ' + rep.review[i].r.id, typ:'review_needed' });
+  }
+  for (i=0;i<rep.unmatched.length;i++){
+    state.bankTx.unshift({ datum:rep.unmatched[i].datum, gegen:rep.unmatched[i].gegen,
+      betragCent:rep.unmatched[i].betragCent, eingang:true, zweck:rep.unmatched[i].zweck, typ:'unmatched' });
+  }
+  state.bankReport.dry = false;
+  toast(rep.matches.length + ' Rechnungen automatisch bezahlt-markiert, ' + rep.review.length + ' zur Klärung markiert', 'success');
+  renderAll();
+}
+function erstelleRechnung(e){
+  e.preventDefault();
+  var kid = $('ksrl-nr-kunde').value;
+  if (!kid){ toast('Bitte Kunden wählen', 'error'); return; }
+  var pos = neuePositionen();
+  if (!pos.length){ toast('Mindestens eine vollständige Position erforderlich', 'error'); return; }
+  var ziel = Number($('ksrl-nr-ziel').value) || ZAHLUNGSZIEL;
+  var versenden = $('ksrl-nr-versenden').checked;
+  var an = $('ksrl-nr-test').value.trim() || kundeEmail(kid);
+  var id = 'RE-' + state.nextNr;
+  if (!demoConfirm('Rechnung ' + id + ' erstellen' + (versenden ? ' und an ' + an + ' senden' : '') + '?')) return;
+
+  state.rechnungen.push({
+    id:id, nr:state.nextNr, customerId:kid, datum:TODAY, faelligAm:addDays(TODAY, ziel),
+    leistungszeitraum:$('ksrl-nr-zeitraum').value.trim() || monatName(addDays(TODAY,-20)),
+    positionen:pos, status:'offen', bezahltAm:null, reviewNeeded:null, storniert:null,
+    versand:{ datum:TODAY, an:an, cc:[FIRMA.buchhaltung.email] }, mahnungen:[], anker:false
+  });
+  state.nextNr += 1;
+  $('ksrl-poslist').innerHTML = ''; addPosZeile();
+  $('ksrl-nr-kunde').value = ''; $('ksrl-nr-zeitraum').value = ''; $('ksrl-nr-ziel').value = ''; $('ksrl-nr-test').value = '';
+  toast('Rechnung ' + id + ' erstellt' + (versenden ? ' + versandt' : ''), 'success');
+  state.detailId = id;
+  zeigeView('rechnungen');
+}
+
+/* =========================================================================
+   Dev-Checks (#dev)
+   ========================================================================= */
+
+function devChecks(){
+  var c = [], i, r;
+  var offen = state.rechnungen.filter(function(x){ return OFFENE.some(function(o){ return o.re === x.id; }); });
+  var summeOffen = 0; offen.forEach(function(x){ summeOffen += bruttoVon(x); });
+  c.push(['Σ Brutto der 8 Anker = 300.000,00 €', summeOffen === 30000000, eur2(summeOffen)]);
+
+  var alleTreffen = true;
+  for (i=0;i<OFFENE.length;i++){ r = rechnungById(OFFENE[i].re); if (!r || bruttoVon(r) !== OFFENE[i].brutto * 100) alleTreffen = false; }
+  c.push(['Jeder Anker trifft seinen Zielbetrag auf den Cent', alleTreffen, '']);
+
+  var ueb = state.rechnungen.filter(function(x){ return istUeberfaellig(x); });
+  var uebS = 0; ueb.forEach(function(x){ uebS += bruttoVon(x); });
+  c.push(['4 überfällig / Σ 164.200,00 €', ueb.length === 4 && uebS === 16420000, ueb.length + ' / ' + eur2(uebS)]);
+
+  var ytd = 0; state.rechnungen.forEach(function(x){ if (x.status !== 'storniert') ytd += nettoVon(x); });
+  c.push(['Σ Netto YTD = Zielwert ' + eur2(TARGET_YTD_NETTO*100), Math.abs(ytd - TARGET_YTD_NETTO*100) <= 100, eur2(ytd)]);
+
+  var anteilOk = true, dsoOk = true;
+  for (i=0;i<CUSTOMERS.length;i++){
+    var s = kundenStats(CUSTOMERS[i].id);
+    if (Math.abs(s.nettoCent / ytd - CUSTOMERS[i].anteil) > 0.001) anteilOk = false;
+    if (s.avgTage !== null && Math.abs(s.avgTage - CUSTOMERS[i].dso) > 2) dsoOk = false;
+  }
+  c.push(['Umsatzanteil je Kunde ±0,1 pp', anteilOk, '']);
+  c.push(['Ø Zahlungsdauer je Kunde ±2 Tage zu dso', dsoOk, '']);
+
+  var zukunft = false;
+  state.rechnungen.forEach(function(x){
+    if (x.datum > TODAY || (x.bezahltAm && x.bezahltAm > TODAY) || x.versand.datum > TODAY) zukunft = true;
+    x.mahnungen.forEach(function(m){ if (m.datum > TODAY) zukunft = true; });
+  });
+  c.push(['Kein Datum in der Zukunft (> ' + fmtDatum(TODAY) + ')', !zukunft, '']);
+
+  var sortiert = state.rechnungen.slice().sort(function(a,b){ return a.datum < b.datum ? -1 : (a.datum > b.datum ? 1 : a.nr - b.nr); });
+  var mono = true, seen = {};
+  for (i=0;i<sortiert.length;i++){
+    if (seen[sortiert[i].nr]) mono = false;
+    seen[sortiert[i].nr] = 1;
+    if (i && sortiert[i].nr <= sortiert[i-1].nr) mono = false;
+    if (sortiert[i].nr >= NUMMERIERUNG.naechsterWert && sortiert[i].datum <= TODAY && sortiert[i].nr < state.nextNr) { /* neu erstellte sind ok */ }
+  }
+  c.push(['Nummern monoton mit dem Datum, keine Dubletten', mono, sortiert.length + ' Rechnungen']);
+  return c;
+}
+function renderDev(){
+  if (location.hash !== '#dev'){ $('ksrl-devbar').innerHTML = ''; return; }
+  var c = devChecks(), alleOk = c.every(function(x){ return x[1]; });
+  $('ksrl-devbar').innerHTML = '<div class="ksrl-devbar ' + (alleOk ? 'ok' : 'bad') + '">' +
+    c.map(function(x){ return (x[1] ? '✓ ' : '✗ ') + esc(x[0]) + (x[2] ? '  →  ' + esc(x[2]) : ''); }).join('\n') + '</div>';
+}
+
+/* =========================================================================
+   J — INIT
+   ========================================================================= */
+
+var initFertig = false;
+function zeigeView(v){
+  state.view = v;
+  var nav = $('ksrl-nav').querySelectorAll('button');
+  for (var i=0;i<nav.length;i++) nav[i].classList.toggle('active', nav[i].getAttribute('data-view') === v);
+  var views = document.querySelectorAll('.ksrl-view');
+  for (i=0;i<views.length;i++) views[i].classList.toggle('active', views[i].id === 'ksrl-view-' + v);
+  renderAll();
+  /* Auf schmalen Breiten liegt der Inhalt weit unten — nach einem Wechsel an den Anfang
+     der App scrollen. Beim ersten Rendern bewusst nicht, sonst springt die Seite beim Laden. */
+  if (initFertig && window.innerWidth <= 900){
+    var app = document.querySelector('.ksrl-app');
+    if (app) app.scrollIntoView({ block:'start' });
+  }
+}
+
+function renderAll(){
+  renderDashboard();
+  renderRechnungen();
+  renderNeueRechnung();
+  renderMahnungen();
+  renderBankReport();
+  renderBankTx();
+  renderKunden();
+  renderEinstellungen();
+  $('ksrl-naechste-nr').textContent = 'Nächste: RE-' + state.nextNr;
+  verknuepfeLabels();
+  renderDev();
+}
+
+/* Die Formulare werden per innerHTML gebaut; Label und Feld werden hier nachträglich
+   verknüpft, damit Screenreader die Felder benennen können. */
+var _lblId = 0;
+function verknuepfeLabels(){
+  var felder = document.querySelectorAll('.ksrl-field');
+  for (var i=0;i<felder.length;i++){
+    var l = felder[i].querySelector('label');
+    var inp = felder[i].querySelector('input, select, textarea');
+    if (!l || !inp || l.htmlFor) continue;
+    if (!inp.id) inp.id = 'ksrl-fld-' + (++_lblId);
+    l.htmlFor = inp.id;
+  }
+}
+
+function init(){
+  resetDemo();
+
+  $('ksrl-f-kunde').innerHTML = '<option value="">Alle Kunden</option>' + CUSTOMERS.map(function(k){
+    return '<option value="' + esc(k.id) + '">' + esc(k.name) + ' (' + esc(k.id) + ')</option>';
+  }).join('');
+  $('ksrl-mahn-datum').value = TODAY;
+  $('ksrl-mahn-datum').min = TODAY;
+  $('ksrl-mahn-datum').max = addDays(TODAY, 90);
+
+  /* Navigation */
+  $('ksrl-nav').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-view]');
+    if (b){ state.detailId = null; state.kundeDetail = null; zeigeView(b.getAttribute('data-view')); }
+  });
+  $('ksrl-reset').addEventListener('click', function(){
+    if (!demoConfirm('Demo auf den Ausgangszustand zurücksetzen?')) return;
+    resetDemo(); toast('Demo zurückgesetzt', 'success'); zeigeView(state.view);
+  });
+
+  /* Filter */
+  ['ksrl-f-suche','ksrl-f-kunde','ksrl-f-status','ksrl-f-jahr','ksrl-f-monat','ksrl-f-ueberfaellig'].forEach(function(id){
+    $(id).addEventListener('input', renderRechnungen);
+    $(id).addEventListener('change', renderRechnungen);
+  });
+
+  /* Delegierte Klicks im Main-Bereich */
+  document.querySelector('.ksrl-main').addEventListener('click', function(e){
+    var t = e.target;
+    var el;
+    if ((el = t.closest('[data-goto]'))){ state.detailId = null; zeigeView(el.getAttribute('data-goto')); return; }
+    if ((el = t.closest('th[data-sort]'))){
+      var k = el.getAttribute('data-sort');
+      state.sort = { key:k, dir: (state.sort.key === k && state.sort.dir === 'asc') ? 'desc' : 'asc' };
+      renderRechnungen(); return;
+    }
+    if ((el = t.closest('[data-detail-back]'))){ state.detailId = null; renderRechnungen(); return; }
+    if ((el = t.closest('[data-bezahlt]'))){ markiereBezahlt(el.getAttribute('data-bezahlt')); return; }
+    if ((el = t.closest('[data-storno]'))){ storniere(el.getAttribute('data-storno')); return; }
+    if ((el = t.closest('[data-mahn]'))){ sendeMahnung(el.getAttribute('data-mahn')); return; }
+    if ((el = t.closest('[data-kunde-back]'))){ state.kundeDetail = null; renderKunden(); return; }
+    if ((el = t.closest('[data-kunde]'))){ state.kundeDetail = el.getAttribute('data-kunde'); renderKunden(); return; }
+    if ((el = t.closest('[data-demo]'))){
+      if (demoConfirm(el.getAttribute('data-demo') + '?')) toast(el.getAttribute('data-demo') + ' — in der Demo nicht dauerhaft gespeichert', 'info');
+      return;
+    }
+    if ((el = t.closest('[data-detail]'))){ state.detailId = el.getAttribute('data-detail'); zeigeView('rechnungen'); return; }
+    if (t.id === 'ksrl-btn-import'){ bankImport(); return; }
+    if (t.classList && t.classList.contains('pos-del')){
+      var rows = $('ksrl-poslist').querySelectorAll('.ksrl-pos-row');
+      if (rows.length > 1) t.closest('.ksrl-pos-row').remove(); else {
+        t.closest('.ksrl-pos-row').querySelectorAll('input').forEach(function(i){ if (!i.readOnly) i.value = ''; });
+      }
+      updateNeuSummen(); return;
+    }
+  });
+
+  /* Neue Rechnung */
+  $('ksrl-add-pos').addEventListener('click', function(){ addPosZeile(); });
+  $('ksrl-poslist').addEventListener('input', updateNeuSummen);
+  $('ksrl-form-neu').addEventListener('submit', erstelleRechnung);
+
+  /* Mahnungen */
+  $('ksrl-mahn-datum').addEventListener('change', function(){
+    state.mahnStichtag = this.value || TODAY; renderMahnungen();
+  });
+  $('ksrl-mahn-refresh').addEventListener('click', function(){ renderMahnungen(); toast('Mahnvorschau aktualisiert', 'info'); });
+  $('ksrl-mahn-all').addEventListener('click', sendeAlleMahnungen);
+
+  /* Bank */
+  $('ksrl-btn-sync').addEventListener('click', bankSync);
+  $('ksrl-btn-file').addEventListener('click', function(){
+    if (demoConfirm('CAMT.053-Datei einlesen?')) bankSync();
+  });
+  var dz = $('ksrl-dropzone');
+  ['dragenter','dragover','dragleave','drop'].forEach(function(ev){
+    dz.addEventListener(ev, function(e){
+      e.preventDefault(); e.stopPropagation();
+      if (ev === 'dragover' || ev === 'dragenter'){ dz.style.borderColor = '#ea591e'; dz.style.background = '#fff'; }
+      else { dz.style.borderColor = '#d8d2cc'; dz.style.background = '#f8f5f2'; }
+      /* Bewusst: die Datei wird NIE gelesen — reine Vorschau. */
+      if (ev === 'drop'){ toast('In der Vorschau wird keine Datei gelesen — hier läuft der simulierte Abgleich.', 'warning'); bankSync(); }
+    });
+  });
+
+  /* Kunden */
+  $('ksrl-k-suche').addEventListener('input', renderKunden);
+  $('ksrl-k-neu').addEventListener('click', function(){
+    if (demoConfirm('Neuen Kunden anlegen?')) toast('In der Demo werden keine Kunden dauerhaft angelegt', 'info');
+  });
+
+  window.addEventListener('resize', skaliereFaksimile);
+  window.addEventListener('hashchange', renderDev);
+
+  /* Auf dem Handy frisst der ausführliche Disclaimer den ganzen ersten Bildschirm —
+     dort nur den ersten Satz zeigen, Rest aufklappbar. */
+  if (window.innerWidth <= 600) $('ksrl-disclaimer').open = false;
+
+  addPosZeile();
+  zeigeView('dashboard');
+  initFertig = true;
+  meldeHoeheAnElternseite();
+}
+
+/* ---- Einbettung per iFrame ----------------------------------------------
+   Ein iFrame von einer anderen Domain kann seine Höhe nicht selbst setzen.
+   Deshalb meldet die Seite ihre Höhe an die Elternseite (karlsch.at), die den
+   Rahmen mitwachsen lässt — sonst säße die Demo am Handy in einem Scroll-Käfig.
+   Gesendet wird ausschließlich eine Zahl. */
+function meldeHoeheAnElternseite(){
+  if (window.parent === window) return;
+  var letzte = 0;
+  function melden(){
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (Math.abs(h - letzte) < 8) return;
+    letzte = h;
+    window.parent.postMessage({ typ: 'ksrl-hoehe', hoehe: h }, '*');
+  }
+  if (window.ResizeObserver) new ResizeObserver(melden).observe(document.documentElement);
+  window.addEventListener('resize', melden);
+  window.setInterval(melden, 500);
+  melden();
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+
+})();
+</script>
+</body>
+</html>
