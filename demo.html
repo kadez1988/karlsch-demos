@@ -63,6 +63,17 @@
   .oeffnen a { color:#EA591E; font-weight:600; text-decoration:none; }
   .oeffnen a:hover { text-decoration:underline; }
 
+  /* Hinweis, der nur auf kleinen Bildschirmen erscheint — am Computer waere er
+     sinnlos. Wird pro Demo gesetzt; ohne Text bleibt er weg. */
+  .mobil-hinweis { display:none; }
+  @media (max-width:700px) {
+    .mobil-hinweis.da {
+      display:block; margin:0 0 14px; padding:10px 12px;
+      background:rgba(234,89,30,.09); border-left:3px solid #EA591E;
+      border-radius:0 8px 8px 0; font-size:13.5px; line-height:1.5; color:#5c4b44;
+    }
+  }
+
   .rahmen { border:1px solid rgba(51,22,19,.18); border-radius:12px; overflow:hidden; }
   .rahmen iframe { width:100%; border:0; display:block; }
 
@@ -128,6 +139,8 @@
     <span class="oeffnen"><a id="oeffnen" href="#" target="_blank" rel="noopener">In eigenem Fenster öffnen ↗</a></span>
   </div>
 
+  <p class="mobil-hinweis" id="mobilHinweis"></p>
+
   <div class="rahmen" id="rahmen"></div>
 
   <div class="cta">
@@ -153,7 +166,8 @@
 
   var DEMOS = [
     { schl:'fd', typ:'ksfd-hoehe', name:'Finance Dashboard', datei:'finance-dashboard.html', hoehe:3200,
-      text:'Umsatz, Marge, Liquidität und Forecast an einem Ort, verknüpft mit den Programmen, mit denen du ohnehin arbeitest. Wie steht mein Unternehmen gerade da — eine Antwort statt fünf Auswertungen, und das in Echtzeit. Du startest in der Übersicht; über die Reiter geht es tiefer in Profitabilität, Forderungen, Kunden, Liquidität, Personal und Forecast. Ganz oben stellst du den Zeitraum ein.' },
+      text:'Umsatz, Marge, Liquidität und Forecast an einem Ort, verknüpft mit den Programmen, mit denen du ohnehin arbeitest. Wie steht mein Unternehmen gerade da — eine Antwort statt fünf Auswertungen, und das in Echtzeit. Du startest in der Übersicht; über die Reiter geht es tiefer in Profitabilität, Forderungen, Kunden, Liquidität, Personal und Forecast. Ganz oben stellst du den Zeitraum ein.',
+      mobil:'Am besten am Computer ansehen: Das Dashboard zeigt bewusst viele Zahlen und Grafiken auf einmal — dafür braucht es einen großen Bildschirm. Am Handy bedienbar, aber eng.' },
     { schl:'bot', typ:'ksbot-hoehe', name:'Warn-Bot', datei:'warn-bot.html', hoehe:2950,
       text:'Risikomanagement in Echtzeit: Der Bot meldet von selbst, wenn die Liquidität knapp wird, eine Rechnung die Mahnstufe erreicht, ein Stammkunde nicht mehr bestellt oder ein Vertrag stillschweigend weiterläuft — Schwellen und Empfänger stellst du selbst ein.' },
     { schl:'rl', typ:'ksrl-hoehe', name:'Rechnungs-Cockpit', datei:'rechnungslegung.html', hoehe:2600,
@@ -180,6 +194,7 @@
   var nameEl = document.getElementById('demoname');
   var textEl = document.getElementById('text');
   var linkEl = document.getElementById('oeffnen');
+  var mobEl  = document.getElementById('mobilHinweis');
 
   var knoepfe = {};   /* schl -> button            */
   var frames  = {};   /* schl -> iframe            */
@@ -217,6 +232,8 @@
         nameEl.textContent = d.name;
         textEl.textContent = d.text;
         linkEl.href = BASIS + d.datei;
+        mobEl.textContent = d.mobil || '';
+        if (d.mobil) mobEl.classList.add('da'); else mobEl.classList.remove('da');
       } else if (frames[d.schl]) {
         frames[d.schl].style.display = 'none';
       }
