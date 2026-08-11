@@ -492,10 +492,10 @@
         <p class="ksrl-subtitle">Zahlungseingänge mit den offenen Rechnungen abgleichen (Rechnungs-ID im Verwendungszweck + Betragsabgleich) und automatisch als bezahlt markieren.</p>
         <div class="ksrl-syncbox">
           <div style="flex:1;min-width:240px;">
-            <div style="font-size:15px;font-weight:600;">Revolut Business — Direkt-Sync</div>
+            <div style="font-size:15px;font-weight:600;">Bank — Direkt-Sync</div>
             <div style="font-size:12px;color:#707070;margin-top:4px;">Holt die Buchungen der letzten 90 Tage direkt aus der Bank. Standard ist Dry-Run; danach kannst du echt importieren.</div>
           </div>
-          <button class="ksrl-btn" id="ksrl-btn-sync">↻ Jetzt mit Revolut syncen</button>
+          <button class="ksrl-btn" id="ksrl-btn-sync">↻ Bank-Sync starten</button>
         </div>
         <details style="margin-bottom:18px;">
           <summary style="cursor:pointer;font-size:13px;color:#707070;">Alternativ: CAMT.053 XML manuell hochladen</summary>
@@ -1323,7 +1323,7 @@ function renderBankReport(){
   box.innerHTML =
     '<div class="ksrl-report ' + (dry ? 'dry' : 'done') + '">' +
       '<div class="meta">' + (dry ? '<strong>DRY RUN</strong> — keine Änderungen gespeichert' : '<strong>IMPORTIERT</strong> — Rechnungen wurden aktualisiert') +
-        ' | Quelle: <strong>Revolut Business</strong> | Konto: <strong>' + esc(FIRMA.bank.iban) + '</strong>' +
+        ' | Quelle: <strong>Bank-Sync</strong> | Konto: <strong>' + esc(FIRMA.bank.iban) + '</strong>' +
         ' | Zeitraum: ' + fmtDatum(addDays(TODAY,-90)) + ' - ' + fmtDatum(TODAY) + '</div>' +
       '<div class="zaehler">' +
         '<span><strong>' + rep.insgesamt + '</strong> Transaktionen total</span><span class="ksrl-sep">|</span>' +
@@ -1570,11 +1570,11 @@ function sendeAlleMahnungen(){
 }
 function bankSync(){
   var btn = $('ksrl-btn-sync');
-  btn.disabled = true; btn.textContent = '↻ Synce mit Revolut...';
+  btn.disabled = true; btn.textContent = '↻ Bank-Sync läuft...';
   $('ksrl-bank-report').innerHTML = '<div class="ksrl-empty" style="padding:26px;">Hole Buchungen aus der Bank… (Dry-Run)</div>';
   window.setTimeout(function(){
     state.bankReport = { rep:baueReport(), dry:true };
-    btn.disabled = false; btn.textContent = '↻ Jetzt mit Revolut syncen';
+    btn.disabled = false; btn.textContent = '↻ Bank-Sync starten';
     renderBankReport();
     toast('Dry-Run fertig — nichts verändert. Report prüfen, dann importieren.', 'info');
   }, 600);
