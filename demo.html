@@ -40,15 +40,20 @@
     font-size:15px; color:#6b5a53;
   }
 
-  .reiter { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 20px; }
+  .wahl {
+    font-size:12px; letter-spacing:1.4px; text-transform:uppercase; font-weight:700;
+    color:#EA591E; margin:0 0 10px;
+  }
+  .reiter { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 22px; }
   .reiter button {
     font-family:inherit; font-size:15px; font-weight:600; cursor:pointer;
-    padding:11px 18px; border-radius:9px; border:1px solid rgba(51,22,19,.22);
-    background:transparent; color:#331613; transition:.15s;
+    padding:12px 18px; border-radius:9px; border:1px solid rgba(51,22,19,.25);
+    background:rgba(51,22,19,.045); color:#331613; transition:.15s;
   }
-  .reiter button:hover { border-color:#EA591E; color:#EA591E; }
+  .reiter button:hover { border-color:#EA591E; color:#EA591E; background:rgba(234,89,30,.07); }
   .reiter button[aria-selected="true"] { background:#EA591E; border-color:#EA591E; color:#fff; }
 
+  .demoname { font-size:22px; line-height:1.25; font-weight:700; margin:0 0 8px; }
   .kopf { display:flex; gap:20px; align-items:baseline; flex-wrap:wrap; margin:0 0 12px; }
   .kopf p { flex:1 1 22em; margin:0; font-size:15px; }
   .oeffnen { white-space:nowrap; font-size:14px; }
@@ -90,8 +95,10 @@
 
   <p class="hinweis">Es wird nichts versendet, nichts erhoben, nichts gespeichert.</p>
 
+  <p class="wahl">Drei Beispiele — klick zum Umschalten</p>
   <div class="reiter" id="reiter" role="tablist" aria-label="Demo auswählen"></div>
 
+  <h2 class="demoname" id="demoname"></h2>
   <div class="kopf">
     <p id="text"></p>
     <span class="oeffnen"><a id="oeffnen" href="#" target="_blank" rel="noopener">In eigenem Fenster öffnen ↗</a></span>
@@ -120,6 +127,7 @@
 
   var leiste = document.getElementById('reiter');
   var host   = document.getElementById('rahmen');
+  var nameEl = document.getElementById('demoname');
   var textEl = document.getElementById('text');
   var linkEl = document.getElementById('oeffnen');
 
@@ -127,10 +135,10 @@
   var frames  = {};   /* schl -> iframe            */
   var nachTyp = {};   /* postMessage-typ -> iframe */
 
-  DEMOS.forEach(function(d){
+  DEMOS.forEach(function(d, i){
     var b = document.createElement('button');
     b.type = 'button';
-    b.textContent = d.name;
+    b.textContent = (i + 1) + ' · ' + d.name;
     b.setAttribute('role', 'tab');
     b.setAttribute('aria-selected', 'false');
     b.addEventListener('click', function(){ zeige(d.schl); });
@@ -156,6 +164,7 @@
           nachTyp[d.typ] = f;
         }
         frames[d.schl].style.display = 'block';
+        nameEl.textContent = d.name;
         textEl.textContent = d.text;
         linkEl.href = BASIS + d.datei;
       } else if (frames[d.schl]) {
