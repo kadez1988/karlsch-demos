@@ -1006,7 +1006,7 @@ function renderChat(){
 
   /* Anzahl und Aufschlüsselung nach Dringlichkeit */
   var krit = msgs.filter(function(m){ return m.ev.prio === 'kritisch'; }).length;
-  $counter.innerHTML = msgs.length + ' Meldungen diese Woche · <b>' + krit + ' kritisch</b>';
+  $counter.innerHTML = msgs.length + ' Meldungen · <b>' + krit + ' kritisch</b>';
   meldeHoeheAnElternseite();
 }
 
