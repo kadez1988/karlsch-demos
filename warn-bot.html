@@ -310,7 +310,7 @@
     <div class="ksbot-hero-inner">
       <div class="ksbot-hero-text">
         <div class="ksbot-hero-title">Beispiel GmbH — Warn-Bot</div>
-        <div class="ksbot-hero-sub">Eine Woche im Rückblick · Mo 03.08. – So 09.08.2026</div>
+        <div class="ksbot-hero-sub" id="heroZeitraum">Eine Woche im Rückblick</div>
       </div>
     </div>
     <details class="ksbot-disclaimer">
@@ -342,7 +342,7 @@
     <div class="ksbot-phone-col">
       <div class="ksbot-h2">Was diese Woche kam</div>
       <div class="ksbot-intro">
-        Sieben Tage, wie sie auf dem Handy ankommen. Antworten Sie direkt in der Nachricht —
+        Sieben Tage, wie sie auf dem Handy ankommen. Antworte direkt in der Nachricht —
         der Bot fragt zurück, statt nur zu melden.
       </div>
 
@@ -370,7 +370,7 @@
 
       <div class="ksbot-wegweiser">
         <span class="pf" aria-hidden="true">↓</span>
-        <span class="tx">Darunter stellen Sie ein, <b>ab wann</b> der Bot meldet und <b>wer</b> es
+        <span class="tx">Darunter stellst du ein, <b>ab wann</b> der Bot meldet und <b>wer</b> es
           bekommt. Jede Änderung wirkt sofort auf den Verlauf oben.</span>
       </div>
     </div>
@@ -378,8 +378,8 @@
     <div>
       <div class="ksbot-h2">Die Regeln dahinter</div>
       <div class="ksbot-intro">
-        Kein fertiges Produkt von der Stange: Sie legen fest, ab wann etwas eine Meldung wert ist
-        und wer sie bekommt. Stellen Sie eine Schwelle um — der Verlauf ändert sich sofort mit.
+        Kein fertiges Produkt von der Stange: Du legst fest, ab wann etwas eine Meldung wert ist
+        und wer sie bekommt. Stell eine Schwelle um — der Verlauf ändert sich sofort mit.
       </div>
       <div id="rules"></div>
       <div class="ksbot-note">
@@ -395,13 +395,15 @@
   <div class="ksbot-alert">
     <div class="ico" aria-hidden="true">🔔</div>
     <div>
-      <h4>Der Unterschied: Sie müssen nicht mehr nachsehen</h4>
+      <h4>Risikomanagement in Echtzeit</h4>
       <p>
-        Das Dashboard zeigt, wie es steht — aber nur, wenn jemand hineinschaut. In dieser Woche
-        kam <b>kein einziger Fall</b> dadurch ans Licht, dass jemand danach gesucht hat.
-        Der stille Großkunde wäre erst beim Monatsabschluss aufgefallen, die Lieferlücke bei
-        Produkt A erst bei der nächsten Bestellung, der Vertrag von Lieferant A überhaupt nicht —
-        er hätte sich um ein Jahr verlängert. <b>Es meldet sich, bevor es weh tut.</b>
+        Jede Meldung oben kommt in dem Moment, in dem sie noch etwas ändern kann — nicht vier
+        Wochen später im Monatsabschluss.
+      </p>
+      <p style="margin-top:8px">
+        <b>Du legst fest, was in deinem Geschäft ein Risiko ist und ab wann gewarnt wird</b> —
+        Auslastung, Maschinenstillstand, Projektbudgets, Stornoquoten, Überstunden,
+        Einkaufspreise. Wenn eine Zahl bei dir zählt, kann sie überwacht werden.
       </p>
     </div>
   </div>
@@ -421,8 +423,52 @@
    mit beiden Demos offen darf keinen Widerspruch finden.
    ══════════════════════════════════════════════════════════════════════════════ */
 
-/* Heute = Sonntag, 09.08.2026 (wie in beiden Schwesterdateien). */
-var HEUTE = { j:2026, m:8, t:9 };
+/* ── Der gezeigte Zeitraum wandert mit dem echten Datum ───────────────────────
+   Ein Interessent soll nie einen Verlauf von vorletztem Sommer sehen. Gezeigt wird
+   immer dieselbe Woche mit denselben Meldungen und denselben Zahlen — nur die
+   Datumsangaben und die Kalenderwoche werden berechnet:
+
+     • Verlauf  = die letzte abgeschlossene Kalenderwoche (Montag bis Sonntag)
+     • darüber  = eine Meldung von HEUTE, wenige Minuten alt
+
+   Weil die Woche immer Mo–So ist, bleibt die Reihenfolge der Meldungen konstant.
+   Die Rechnungsalter sind relativ zum Sonntag dieser Woche definiert (nicht zu
+   einem festen Datum) — dadurch stimmen Mahnstufen und Beträge cent-genau,
+   egal wann jemand die Seite öffnet.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Kann für Tests überschrieben werden — sonst der echte Zeitpunkt. */
+var JETZT = new Date();
+
+function nurDatum(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function plusTage(d, n){ var x = nurDatum(d); x.setDate(x.getDate() + n); return x; }
+/* Wochentag mit Montag = 0 (getDay() liefert Sonntag = 0). */
+function wtIndex(d){ return (d.getDay() + 6) % 7; }
+
+/* Sonntag der letzten abgeschlossenen Woche: von heute zurück bis zum Sonntag,
+   der echt vor heute liegt. Ist heute Sonntag, ist es der Sonntag davor. */
+function letzterSonntag(jetzt){
+  var h = nurDatum(jetzt);
+  var zurueck = wtIndex(h) + 1;          /* Mo→1, Di→2, … So→7 */
+  return plusTage(h, -zurueck);
+}
+
+/* Wie alt die „gerade eingetroffene" Meldung ist. Fest, damit die Demo bei jedem
+   Aufruf dasselbe zeigt — nur eben immer bezogen auf jetzt. */
+var MINUTEN_ALT = 8;
+function uhrzeitVorhin(){
+  var t = new Date(JETZT.getTime() - MINUTEN_ALT * 60000);
+  return zwei(t.getHours()) + ':' + zwei(t.getMinutes());
+}
+
+var SONNTAG    = letzterSonntag(JETZT);          /* letzter Tag des Verlaufs */
+var WOCHENSTART = plusTage(SONNTAG, -6);         /* Montag derselben Woche */
+var HEUTE      = nurDatum(JETZT);
+
+/* Die sieben Tage des Verlaufs, Index 0 = Montag … 6 = Sonntag. Index 7 = heute. */
+var TAGE = [];
+for (var _i = 0; _i < 7; _i++) TAGE.push(plusTage(WOCHENSTART, _i));
+var TAG_HEUTE = 7;
 
 /* Monatsumsatz aus dem Finance Dashboard, Ist nur bis einschließlich Juli. */
 var REVENUE = [195000,205000,235000,250000,240000,260000,220000,200000,245000,275000,290000,265000];
@@ -470,11 +516,12 @@ var LAGER = [
 ];
 var JAHRESUMSATZ = REVENUE.reduce(function(a,b){ return a+b; }, 0);   /* 2.880.000 € */
 
-/* Kunden, die zuletzt bestellt haben. wochenStill = Stand 09.08.2026.
+/* Kunden, die zuletzt bestellt haben. wochenStill = Stand am Sonntag des Verlaufs.
+   `letzte` wird beim Rendern aus wochenStill berechnet, damit das Datum mitwandert.
    oWochen = üblicher Abstand zwischen zwei Bestellungen (52 / Rechnungen pro Jahr). */
 var KUNDEN_STILL = [
-  { kunde:'Kunde A (Handel)',       anteil:0.30, rechnungen:14, wochenStill:9.0, letzte:'07.06.2026' },
-  { kunde:'Kunde J (Einzelhandel)', anteil:0.03, rechnungen:3,  wochenStill:5.0, letzte:'05.07.2026' }
+  { kunde:'Kunde A (Handel)',       anteil:0.30, rechnungen:14, wochenStill:9.0 },
+  { kunde:'Kunde J (Einzelhandel)', anteil:0.03, rechnungen:3,  wochenStill:5.0 }
 ];
 
 /* Verträge, die sich automatisch verlängern. tageBisFrist = Stand des Meldetags. */
@@ -525,7 +572,10 @@ function delta(cur, prev, opt){
   return ' <span class="' + cls + '">(' + txt + ')</span>';
 }
 
-/* Verzugstage einer Rechnung am Stichtag (Tag 0 = Mo 03.08.). */
+/* Verzugstage einer Rechnung an einem Tag des Verlaufs.
+   tagIdx 0 = Montag … 6 = Sonntag (der Stichtag, auf den `tage` bezogen ist),
+   7 = heute. Dadurch bleiben Mahnstufe und Betrag konstant, egal wann jemand
+   die Seite öffnet. */
 function verzug(re, tagIdx){
   return OFFEN[re].tage - ZAHLUNGSZIEL - (6 - tagIdx);
 }
@@ -555,20 +605,44 @@ function wochenumsatz(tage){  /* tage = [{monatIdx, wochentag}, …] */
 }
 
 var WOCHENTAGE = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
-var DATUM = ['03.08.2026','04.08.2026','05.08.2026','06.08.2026','07.08.2026','08.08.2026','09.08.2026'];
-/* Kalendarische Zuordnung der sieben Tage (August = Index 7). */
-var TAGE_KW32 = [
+
+function zwei(n){ return n < 10 ? '0' + n : String(n); }
+function fmtTag(d){ return zwei(d.getDate()) + '.' + zwei(d.getMonth() + 1) + '.'; }
+function fmtVoll(d){ return fmtTag(d) + d.getFullYear(); }
+
+/* ISO-8601-Kalenderwoche: Woche 1 ist die mit dem ersten Donnerstag des Jahres.
+   Über den Donnerstag der Woche gerechnet, damit der Jahreswechsel stimmt. */
+function isoKW(d){
+  var t = nurDatum(d);
+  t.setDate(t.getDate() + 3 - wtIndex(t));           /* auf den Donnerstag der Woche */
+  var ersterDo = new Date(t.getFullYear(), 0, 4);
+  ersterDo.setDate(ersterDo.getDate() + 3 - wtIndex(ersterDo));
+  return 1 + Math.round((t - ersterDo) / 604800000);
+}
+
+/* Der Wochenbericht am Montag blickt auf die Woche davor zurück. */
+var BERICHT_START = plusTage(WOCHENSTART, -7);
+var BERICHT_ENDE  = plusTage(WOCHENSTART, -1);
+
+/* ── Die Umsatzzahlen bleiben bewusst fest ───────────────────────────────────
+   Gezeigt wird immer dieselbe Beispielwoche; nur das Datum wandert. Der
+   Referenzmonat ist deshalb fest August (Index 7) bzw. Juli (6) für die
+   Vergleichswoche — sonst schwankten die Beträge je nach Jahreszeit und die
+   Demo erzählte jedes Mal etwas anderes.
+   ────────────────────────────────────────────────────────────────────────── */
+var REF_MONAT = 7;
+var TAGE_REFWOCHE = [
   {monatIdx:7, wochentag:0}, {monatIdx:7, wochentag:1}, {monatIdx:7, wochentag:2},
   {monatIdx:7, wochentag:3}, {monatIdx:7, wochentag:4}, {monatIdx:7, wochentag:5},
   {monatIdx:7, wochentag:6}
 ];
-/* KW 31 lief vom 27.07. bis 02.08. — fünf Julitage, zwei Augusttage. */
-var TAGE_KW31 = [
+/* Berichtswoche: fünf Julitage, zwei Augusttage — wie im ursprünglichen Beispiel. */
+var TAGE_BERICHTSWOCHE = [
   {monatIdx:6, wochentag:0}, {monatIdx:6, wochentag:1}, {monatIdx:6, wochentag:2},
   {monatIdx:6, wochentag:3}, {monatIdx:6, wochentag:4}, {monatIdx:7, wochentag:5},
   {monatIdx:7, wochentag:6}
 ];
-/* Vergleichsmaßstab: Ø-Woche aus Juni und Juli. */
+/* Vergleichsmaßstab: Ø-Woche aus den beiden Monaten davor. */
 var VERGLEICHSWOCHE = Math.round((REVENUE[5] + REVENUE[6]) / ((TAGE_IM_MONAT[5] + TAGE_IM_MONAT[6]) / 7) / 100) * 100;
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -645,10 +719,10 @@ function briefingText(tag){
      wäre eine Zahl ohne Aussage. */
   var u, label;
   if (tag === 0) {
-    u = tagesumsatz(7, 4) + tagesumsatz(7, 5) + tagesumsatz(7, 6);
+    u = tagesumsatz(REF_MONAT, 4) + tagesumsatz(REF_MONAT, 5) + tagesumsatz(REF_MONAT, 6);
     label = 'Freitag bis Sonntag';
   } else {
-    u = tagesumsatz(7, tag - 1);
+    u = tagesumsatz(REF_MONAT, tag - 1);
     label = WOCHENTAGE[tag - 1];
   }
   var eingang = Math.round(u * 0.72 / 100) * 100;    /* Zahlungseingänge folgen dem Umsatz verzögert */
@@ -661,13 +735,13 @@ function briefingText(tag){
 
 /* — Wochenbericht ————————————————————————————————————————————————— */
 function wochenberichtText(){
-  var u = wochenumsatz(TAGE_KW31);
+  var u = wochenumsatz(TAGE_BERICHTSWOCHE);
   return zeile('Umsatz: <b>' + eur(u) + '</b>' + delta(u, VERGLEICHSWOCHE, {prozent:true}))
        + zeile('Offene Forderungen: <b>' + eur(FORDERUNGEN) + '</b>'
              + delta(FORDERUNGEN, 288000, {eur:true, gutIstPlus:false}))
        + zeile('Ø Zahlungsdauer: <b>' + DSO + ' Tage</b>' + delta(DSO, 37, {gutIstPlus:false}))
        + zeile('Auf den Konten: <b>' + eur(CASH) + '</b>' + delta(CASH, 120400, {eur:true}))
-       + zeile('<span style="color:#8b7d76">Vergleich: Ø-Woche aus Juni und Juli</span>');
+       + zeile('<span style="color:#8b7d76">Vergleich: Ø-Woche der letzten acht Wochen</span>');
 }
 
 /* — Liquidität ———————————————————————————————————————————————————— */
@@ -742,6 +816,11 @@ function lagerEvent(p, tagIdx, zeit){
 }
 
 /* — Stiller Kunde ————————————————————————————————————————————————— */
+/* Datum der letzten Bestellung, gerechnet vom Meldetag — wandert mit. */
+function letzteBestellung(k, tagIdx){
+  var meldetag = tagIdx === TAG_HEUTE ? HEUTE : TAGE[tagIdx];
+  return fmtVoll(plusTage(meldetag, -Math.round(k.wochenStill * 7)));
+}
 function stillEvent(k, tagIdx, zeit){
   var oWochen = 52 / k.rechnungen;
   var faktor  = k.wochenStill / oWochen;
@@ -754,12 +833,12 @@ function stillEvent(k, tagIdx, zeit){
     titel:'Seit ' + num1(k.wochenStill) + ' Wochen keine Bestellung · ' + k.kunde.split(' (')[0],
     body:
         zeile('<b>' + esc(k.kunde) + '</b> bestellt sonst alle <b>' + num1(oWochen)
-            + ' Wochen</b>. Letzte Bestellung: ' + k.letzte + '.')
+            + ' Wochen</b>. Letzte Bestellung: ' + letzteBestellung(k, tagIdx) + '.')
       + zeile('Das ist das <b>' + num1(faktor) + '-fache</b> des üblichen Abstands.')
       + (gross
           ? zeile('Dieser Kunde macht <b>' + Math.round(k.anteil * 100)
-                + ' % Ihres Jahresumsatzes</b>. Gleichzeitig sind <b>' + eur(OFFEN['RE-2301'].betrag)
-                + '</b> aus RE-2301 seit ' + verzug('RE-2301', 6) + ' Tagen überfällig.')
+                + ' % deines Jahresumsatzes</b>. Gleichzeitig sind <b>' + eur(OFFEN['RE-2301'].betrag)
+                + '</b> aus RE-2301 seit ' + verzug('RE-2301', tagIdx) + ' Tagen überfällig.')
           : zeile('Umsatzanteil: ' + Math.round(k.anteil * 100) + ' %.')),
     aktionen:[
       { t:'Vertrieb informieren', pri:gross, antwort:'An Vertrieb weitergegeben' },
@@ -806,8 +885,10 @@ function alleEreignisse(){
 
   /* Wochenbericht — Montag früh oder Freitag nachmittag, je nach Einstellung */
   ev.push({
-    id:'woche-kw31', regel:'woche', tag:null, zeit:null, pruef:null,
-    prio:'info', ico:'📊', titel:'Wochenbericht KW 31 · 27.07. – 02.08.',
+    id:'woche-bericht', regel:'woche', tag:null, zeit:null, pruef:null,
+    prio:'info', ico:'📊',
+    titel:'Wochenbericht KW ' + isoKW(BERICHT_START) + ' · ' + fmtTag(BERICHT_START)
+        + ' – ' + fmtTag(BERICHT_ENDE),
     body:wochenberichtText(), aktionen:[]
   });
 
@@ -821,8 +902,10 @@ function alleEreignisse(){
   ev.push(vertragEvent(VERTRAEGE[1], 3, '13:40'));  /* 40 Tage — sichtbar ab Vorlauf 45 */
 
   /* Stille Kunden */
-  ev.push(stillEvent(KUNDEN_STILL[1], 1, '08:30'));  /* Kunde J — 5,0 Wochen */
-  ev.push(stillEvent(KUNDEN_STILL[0], 6, '18:02'));  /* Kunde A — 9,0 Wochen, das ist die Push-Meldung */
+  ev.push(stillEvent(KUNDEN_STILL[1], 1, '08:30'));            /* Kunde J — 5,0 Wochen */
+  /* Kunde A sitzt auf HEUTE und ist wenige Minuten alt — das ist die Meldung,
+     die beim Öffnen der Seite hereinkommt. */
+  ev.push(stillEvent(KUNDEN_STILL[0], TAG_HEUTE, uhrzeitVorhin()));
 
   /* Liquidität — Freitagnachmittag, nach dem Zahlungslauf */
   ev.push({
@@ -904,9 +987,11 @@ function renderChat(){
 
   msgs.forEach(function(m){
     if (m.tag !== letzterTag) {
-      var heute = m.tag === 6;
-      html += '<div class="ksbot-daysep' + (heute ? ' today' : '') + '"><span>'
-            + WOCHENTAGE[m.tag] + ', ' + DATUM[m.tag] + (heute ? ' · heute' : '')
+      var istHeute = m.tag === TAG_HEUTE;
+      html += '<div class="ksbot-daysep' + (istHeute ? ' today' : '') + '"><span>'
+            + (istHeute
+                ? 'Heute · ' + WOCHENTAGE[wtIndex(HEUTE)] + ', ' + fmtVoll(HEUTE)
+                : WOCHENTAGE[m.tag] + ', ' + fmtVoll(TAGE[m.tag]))
             + '</span></div>';
       letzterTag = m.tag;
     }
@@ -928,7 +1013,8 @@ function renderChat(){
 function msgHtml(m){
   var ev = m.ev;
   var regel = REGELN.filter(function(r){ return r.id === ev.regel; })[0];
-  var wochenende = m.tag >= 5;
+  /* Nur Samstag und Sonntag der gezeigten Woche — „heute" (Index 7) zählt nicht dazu. */
+  var wochenende = m.tag === 5 || m.tag === 6;
   var stumm = wochenende && ev.prio !== 'kritisch';
 
   var h = '<div class="ksbot-msg ' + ev.prio + '" id="msg-' + esc(ev.id) + '">';
@@ -1100,9 +1186,9 @@ function zeigePush(verzoegerung){
 
   document.getElementById('pushT').textContent = ev.titel;
   document.getElementById('pushB').innerHTML =
-      '<b>' + Math.round(KUNDE_A_ANTEIL * 100) + ' % Ihres Jahresumsatzes.</b> '
+      '<b>' + Math.round(KUNDE_A_ANTEIL * 100) + ' % deines Jahresumsatzes.</b> '
     + 'Sonst alle 3,7 Wochen eine Bestellung — jetzt seit 9 Wochen nichts.';
-  document.getElementById('pushApp').textContent = kanal + ' · jetzt';
+  document.getElementById('pushApp').textContent = kanal + ' · vor ' + MINUTEN_ALT + ' Minuten';
 
   if (pushTimer) clearTimeout(pushTimer);
   $push.classList.remove('on', 'ksbot-pulse');
@@ -1182,13 +1268,48 @@ function devChecks(){
   var wtSumme = WT_FAKTOR.reduce(function(a,b){ return a+b; }, 0);
   chk('Wochentagsfaktoren summieren auf 7,0', Math.abs(wtSumme - 7) < 1e-9,
       wtSumme.toFixed(2).replace('.', ','));
-  /* Eine August-Woche muss den Monat treffen (August ist die Vergleichsbasis
-     der laufenden Woche, nicht der KW-31-Bericht). */
-  var augWoche = wochenumsatz(TAGE_KW32);
-  var augSoll  = REVENUE[7] / TAGE_IM_MONAT[7] * 7;
-  chk('Augustwoche trifft den Monatsschnitt (±2 %)',
-      Math.abs(augWoche - augSoll) / augSoll < 0.02,
-      eur(augWoche) + ' vs. ' + eur(augSoll));
+  /* Die Referenzwoche muss den Monatsschnitt treffen. */
+  var refWoche = wochenumsatz(TAGE_REFWOCHE);
+  var refSoll  = REVENUE[REF_MONAT] / TAGE_IM_MONAT[REF_MONAT] * 7;
+  chk('Referenzwoche trifft den Monatsschnitt (±2 %)',
+      Math.abs(refWoche - refSoll) / refSoll < 0.02,
+      eur(refWoche) + ' vs. ' + eur(refSoll));
+
+  /* ── Das gleitende Datum ──────────────────────────────────────────────────
+     Diese Prüfungen laufen über 800 aufeinanderfolgende Tage — über zwei
+     Jahreswechsel, Schaltjahr und beide Zeitumstellungen. Eine Demo, die sich
+     selbst datiert, darf nicht still kaputtgehen.
+     ─────────────────────────────────────────────────────────────────────── */
+  var fehlerTag = null, geprueft = 0;
+  for (var d = 0; d < 800 && !fehlerTag; d++) {
+    var probe = new Date(2026, 0, 1 + d, 14, 30);
+    var so = letzterSonntag(probe);
+    var mo = plusTage(so, -6);
+    /* Math.round, nicht rohe Division: an den beiden Zeitumstellungen liegen
+       zwischen zwei Mitternachten 23 bzw. 25 Stunden. Ohne Rundung meldet der
+       Test dort einen Fehler, den es nicht gibt (setDate() rechnet kalendarisch). */
+    var abstand = Math.round((nurDatum(probe) - so) / 86400000);
+    var ok = wtIndex(so) === 6                                   /* endet auf Sonntag */
+          && wtIndex(mo) === 0                                   /* beginnt auf Montag */
+          && so < nurDatum(probe)                                /* Woche ist abgeschlossen */
+          && abstand >= 1 && abstand <= 7                        /* und höchstens 7 Tage her */
+          && isoKW(mo) >= 1 && isoKW(mo) <= 53;
+    geprueft++;
+    if (!ok) fehlerTag = probe.toISOString().slice(0, 10);
+  }
+  chk('Gleitendes Datum über 800 Tage stabil', !fehlerTag,
+      fehlerTag ? 'Fehler am ' + fehlerTag : geprueft + ' Tage geprüft');
+
+  /* Der Verlauf endet immer auf Sonntag, heute liegt danach. */
+  chk('Verlauf: Mo–So abgeschlossen, heute danach',
+      wtIndex(WOCHENSTART) === 0 && wtIndex(SONNTAG) === 6 && SONNTAG < HEUTE,
+      fmtVoll(WOCHENSTART) + ' – ' + fmtVoll(SONNTAG) + ' · heute ' + fmtVoll(HEUTE));
+
+  /* Bekannte ISO-Wochen als Stichprobe (inkl. Jahreswechsel-Fallen). */
+  chk('ISO-Kalenderwoche rechnet richtig',
+      isoKW(new Date(2026, 0, 1)) === 1 && isoKW(new Date(2026, 7, 3)) === 32
+      && isoKW(new Date(2027, 0, 4)) === 1 && isoKW(new Date(2025, 11, 29)) === 1,
+      'KW 1/32/1/1');
 
   /* Mahnbeträge müssen dem Rechnungs-Cockpit entsprechen */
   var m2390 = mahnbetrag('RE-2390', verzug('RE-2390', 6));
@@ -1270,6 +1391,10 @@ function devChecks(){
 /* ══════════════════════════════════════════════════════════════════════════════
    J — START
    ══════════════════════════════════════════════════════════════════════════════ */
+
+document.getElementById('heroZeitraum').textContent =
+  'Die vergangene Woche · Mo ' + fmtTag(WOCHENSTART) + ' – So ' + fmtVoll(SONNTAG)
+  + ' · plus eine Meldung von heute';
 
 initStand();
 render();
