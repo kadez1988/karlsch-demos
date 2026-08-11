@@ -39,6 +39,9 @@
     border-left:3px solid #EA591E; padding:2px 0 2px 16px; margin:26px 0 34px;
     font-size:15px; color:#6b5a53;
   }
+  /* Eingebettet faellt die Einleitung weg — dann steht der Hinweis oben und
+     braucht keinen Abstand nach oben. */
+  .seite > .hinweis:first-child { margin-top:0; }
 
   .wahl {
     font-size:12px; letter-spacing:1.4px; text-transform:uppercase; font-weight:700;
@@ -100,14 +103,19 @@
 <body>
 <div class="seite">
 
-  <h1>Automatisierungen für dein Unternehmen</h1>
+  <!-- Titel und Einleitung stehen auf karlsch.at/demo bereits im dunklen
+       Titelstreifen der Squarespace-Seite. Eingebettet wird dieser Block
+       deshalb per JS entfernt; beim direkten Aufruf der Datei bleibt er. -->
+  <div id="intro">
+    <h1>Automatisierungen für dein Unternehmen</h1>
 
-  <p class="lead">Drei Beispiele aus meiner Arbeit — voll bedienbar, mit erfundenen Zahlen einer
-    „Beispiel GmbH".</p>
+    <p class="lead">Drei Beispiele aus meiner Arbeit — voll bedienbar, mit erfundenen Zahlen einer
+      „Beispiel GmbH".</p>
 
-  <p>In der Praxis wird jedes Werkzeug auf das Unternehmen zugeschnitten und hängt direkt an deinen
-    Systemen — Bank, Kassa, Rechnungslegung, Warenwirtschaft. Die Zahlen laufen dann
-    <b>in Echtzeit</b> mit.</p>
+    <p>In der Praxis wird jedes Werkzeug auf das Unternehmen zugeschnitten und hängt direkt an deinen
+      Systemen — Bank, Kassa, Rechnungslegung, Warenwirtschaft. Die Zahlen laufen dann
+      <b>in Echtzeit</b> mit.</p>
+  </div>
 
   <p class="hinweis">Es wird nichts versendet, nichts erhoben, nichts gespeichert.</p>
 
@@ -158,6 +166,9 @@
     document.body.style.background = 'transparent';
     var seite = document.querySelector('.seite');
     if (seite) { seite.style.padding = '0'; seite.style.maxWidth = 'none'; }
+    /* Titel und Einleitung stehen dort schon im Titelstreifen der Seite. */
+    var intro = document.getElementById('intro');
+    if (intro) intro.parentNode.removeChild(intro);
     var zur = document.getElementById('zurueck');
     if (zur) zur.parentNode.removeChild(zur);
   }
