@@ -11,8 +11,10 @@
     display:flex; align-items:center; justify-content:center; min-height:100vh; padding:24px; }
   .karte { background:#fff; border-radius:14px; padding:30px 32px; max-width:520px; width:100%;
     box-shadow:0 2px 12px rgba(51,22,19,.12); }
-  h1 { font-size:20px; margin-bottom:6px; }
-  p { font-size:13.5px; color:#7A6A63; line-height:1.55; margin-bottom:20px; }
+  h1 { font-size:20px; margin-bottom:8px; }
+  p { font-size:13.5px; color:#7A6A63; line-height:1.55; margin-bottom:11px; }
+  p:last-of-type { margin-bottom:20px; }
+  p b { color:#331613; }
   a.demo { display:block; padding:14px 16px; border:1px solid rgba(51,22,19,.15); border-radius:10px;
     text-decoration:none; color:#331613; margin-bottom:10px; transition:.15s; }
   a.demo:hover { border-color:#EA591E; background:#FAF7F4; }
@@ -25,13 +27,19 @@
 <body>
   <div class="karte">
     <h1>Live-Demos</h1>
-    <p>Drei Vorschauen mit fiktiven Beispieldaten. Sie zeigen, wie die Werkzeuge aussehen, die ich
-      für Unternehmen baue. Es werden keine Daten erhoben, versendet oder gespeichert.</p>
-    <a class="demo" href="finance-dashboard.html"><b>Finance Dashboard</b>
+    <p>Drei Vorschauen mit fiktiven Beispieldaten — voll bedienbar, klick dich ruhig durch.</p>
+    <p><b>Das sind bewusst allgemeine Beispiele.</b> In der Praxis wird jedes dieser Werkzeuge stark
+      auf das jeweilige Unternehmen zugeschnitten: andere Kennzahlen, andere Abläufe, andere
+      Schwellen. Von der Stange gibt es das nicht — es gibt ja auch kein Unternehmen von der Stange.</p>
+    <p>Im echten Einsatz hängen die Werkzeuge direkt an deinen Systemen — Bank, Buchhaltung,
+      Warenwirtschaft — und die Zahlen laufen <b>in Echtzeit</b> mit. Was du hier siehst, ist ein
+      fester Beispielstand zum Ausprobieren.</p>
+    <p>Es werden keine Daten erhoben, versendet oder gespeichert.</p>
+    <a class="demo" href="finance-dashboard.html" target="_blank" rel="noopener"><b>Finance Dashboard</b>
       <span>Umsatz, Marge, Liquidität, Forecast — die Zahlen des Unternehmens auf einen Blick.</span></a>
-    <a class="demo" href="rechnungslegung.html"><b>Rechnungs-Cockpit</b>
+    <a class="demo" href="rechnungslegung.html" target="_blank" rel="noopener"><b>Rechnungs-Cockpit</b>
       <span>Rechnung erstellen, Zahlungseingänge über die Bank abgleichen, Mahnwesen automatisiert.</span></a>
-    <a class="demo" href="warn-bot.html"><b>Warn-Bot</b>
+    <a class="demo" href="warn-bot.html" target="_blank" rel="noopener"><b>Warn-Bot</b>
       <span>Meldet von selbst aufs Handy, bevor es weh tut — mit Regeln, die du einstellst.</span></a>
     <div class="fuss">Zurück zu <a href="https://www.karlsch.at">karlsch.at</a></div>
   </div>
