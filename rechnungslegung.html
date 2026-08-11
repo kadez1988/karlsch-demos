@@ -35,6 +35,19 @@
   .ksrl-disclaimer[open] > summary .mehr { display:none; }
   .ksrl-disclaimer .rest { margin-top:6px; }
 
+  /* Kernversprechen direkt unter dem Hero — bewusst NICHT im aufklappbaren
+     Disclaimer, damit es auf jedem Gerät ungefragt sichtbar bleibt. */
+  .ksrl-auto {
+    background:#fff; border-left:4px solid #ea591e; border-bottom:1px solid #d8d2cc;
+    padding:13px 40px 13px 36px; display:flex; gap:14px; align-items:baseline; flex-wrap:wrap;
+    font-size:13.5px; line-height:1.55;
+  }
+  .ksrl-auto-lbl {
+    font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; font-weight:700;
+    color:#ea591e; white-space:nowrap;
+  }
+  .ksrl-auto b { font-weight:600; }
+
   /* ---------- Layout ---------- */
   /* min-width:0 auf beiden Grid-Kindern — sonst sprengt die Nav-Leiste im Mobil-Layout
      (7 Buttons nebeneinander) die Spalte auf und die ganze Seite scrollt horizontal. */
@@ -273,6 +286,7 @@
     .ksrl-hero-title { font-size:18px; }
     .ksrl-hero-sub { font-size:11.5px; }
     .ksrl-disclaimer { font-size:12px; padding:9px 12px; margin-top:12px; }
+    .ksrl-auto { padding:11px 16px 11px 14px; gap:4px 10px; font-size:12.5px; }
     .ksrl-main h1 { font-size:19px; }
     .ksrl-subtitle { margin-bottom:16px; }
     .ksrl-cards { grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:18px; }
@@ -320,13 +334,20 @@
       </div>
     </div>
     <details class="ksrl-disclaimer" id="ksrl-disclaimer" open>
-      <summary><b>Vorschau mit fiktiven Beispieldaten.</b> So sieht deine eigene Rechnungslegung aus.
+      <summary><b>Vorschau mit fiktiven Beispieldaten.</b> Voll bedienbar — klick dich ruhig durch.
         <span class="mehr">mehr</span></summary>
-      <div class="rest">Rechnung erstellen und versenden, Zahlungseingänge automatisch über die Bank
-        abgleichen, Mahnwesen als Kaskade — Zahlungserinnerung läuft automatisch, ab der 1. Mahnung
-        entscheidest du per Klick. Alle Zahlen, Namen und Interaktionen dienen ausschließlich der
-        Demonstration; es wird nichts versendet und nichts gespeichert.</div>
+      <div class="rest">Alle Zahlen und Namen sind erfunden, jede Aktion dient der Demonstration:
+        es wird nichts versendet und nichts gespeichert. Im echten Einsatz hängt das Programm an
+        deinem Bankkonto und deiner Buchhaltung, die Zahlen laufen in Echtzeit mit — und es wird auf
+        dein Unternehmen zugeschnitten, von der Stange gibt es das nicht.</div>
     </details>
+  </div>
+
+  <div class="ksrl-auto">
+    <span class="ksrl-auto-lbl">Automatisch</span>
+    <span><b>Rechnung schreiben — um den Rest kümmert sich das Programm:</b> Versand an Kunde und
+      Buchhaltung, laufender Abgleich der Zahlungseingänge am Bankkonto, Mahnwesen von der
+      Zahlungserinnerung bis zur letzten Mahnung.</span>
   </div>
 
   <div class="ksrl-app">
