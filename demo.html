@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automatisierungen für dein Unternehmen — Karl Schedlberger</title>
+<meta name="description" content="Drei Beispiele aus meiner Arbeit: Finance Dashboard, Warn-Bot und Rechnungs-Cockpit — voll bedienbar, mit erfundenen Beispieldaten.">
+<!-- ===========================================================================
+     Fertige Seite mit den drei Demos. Liegt auf GitHub Pages und laesst sich
+     auf zwei Arten nutzen:
+
+       1. direkt verlinken  -> https://kadez1988.github.io/karlsch-demos/demo.html
+       2. auf karlsch.at/demo per iFrame einbetten (ein kleiner Code-Block,
+          der nie wieder angefasst werden muss — siehe _squarespace-block.html)
+
+     Aenderungen an Texten oder Demos passieren HIER, nicht in Squarespace:
+     Datei aendern, pushen, fertig.
+
+     Hoehen-Kette beim Einbetten: die drei Demos melden ihre Hoehe an diese
+     Seite (ksfd-hoehe / ksbot-hoehe / ksrl-hoehe), diese Seite meldet ihre
+     Gesamthoehe weiter an Squarespace (ksdemo-hoehe).
+     =========================================================================== -->
+<style>
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; }
+  body {
+    font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color:#331613; background:#fff; line-height:1.65;
+  }
+  .seite { max-width:1100px; margin:0 auto; padding:34px 24px 44px; }
+
+  h1 {
+    font-size:34px; line-height:1.2; margin:0 0 16px; font-weight:700;
+    overflow-wrap:break-word; hyphens:auto;
+  }
+  p { margin:0 0 15px; font-size:16px; }
+  .lead { font-size:17.5px; }
+  .hinweis {
+    border-left:3px solid #EA591E; padding:2px 0 2px 16px; margin:26px 0 34px;
+    font-size:15px; color:#6b5a53;
+  }
+
+  .reiter { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 20px; }
+  .reiter button {
+    font-family:inherit; font-size:15px; font-weight:600; cursor:pointer;
+    padding:11px 18px; border-radius:9px; border:1px solid rgba(51,22,19,.22);
+    background:transparent; color:#331613; transition:.15s;
+  }
+  .reiter button:hover { border-color:#EA591E; color:#EA591E; }
+  .reiter button[aria-selected="true"] { background:#EA591E; border-color:#EA591E; color:#fff; }
+
+  .kopf { display:flex; gap:20px; align-items:baseline; flex-wrap:wrap; margin:0 0 12px; }
+  .kopf p { flex:1 1 22em; margin:0; font-size:15px; }
+  .oeffnen { white-space:nowrap; font-size:14px; }
+  .oeffnen a { color:#EA591E; font-weight:600; text-decoration:none; }
+  .oeffnen a:hover { text-decoration:underline; }
+
+  .rahmen { border:1px solid rgba(51,22,19,.18); border-radius:12px; overflow:hidden; }
+  .rahmen iframe { width:100%; border:0; display:block; }
+
+  .cta { margin:38px 0 0; padding-top:26px; border-top:1px solid rgba(51,22,19,.15); }
+  .cta a {
+    display:inline-block; background:#EA591E; color:#fff; text-decoration:none;
+    padding:14px 26px; border-radius:8px; font-weight:600; font-size:16px;
+  }
+  .cta a:hover { background:#d24d16; }
+  .zurueck { margin:18px 0 0; font-size:14px; color:#6b5a53; }
+  .zurueck a { color:#EA591E; }
+
+  @media (max-width:700px) {
+    .seite { padding:26px 18px 34px; }
+    h1 { font-size:26px; }
+    .lead { font-size:16px; }
+    .reiter { gap:6px; }
+    .reiter button { font-size:13.5px; padding:9px 13px; }
+    .kopf p { font-size:14px; }
+  }
+</style>
+</head>
+<body>
+<div class="seite">
+
+  <h1>Automatisierungen für dein Unternehmen</h1>
+
+  <p class="lead">Drei Beispiele aus meiner Arbeit — keine Folien, sondern laufende Programme.
+    Voll bedienbar, mit erfundenen Zahlen einer „Beispiel GmbH". Klick dich durch: filtere
+    Rechnungen, gleiche Zahlungseingänge mit der Bank ab, löse einen Mahnlauf aus, stell ein,
+    ab wann der Bot warnt.</p>
+
+  <p>Das sind bewusst allgemeine Beispiele. In der Praxis wird jedes dieser Werkzeuge stark auf
+    das jeweilige Unternehmen zugeschnitten: andere Kennzahlen, andere Abläufe, andere Schwellen.
+    Und im echten Einsatz hängen sie direkt an deinen Systemen — Bank, Buchhaltung,
+    Warenwirtschaft — die Zahlen laufen <b>in Echtzeit</b> mit. Was du hier siehst, ist ein
+    fester Beispielstand zum Ausprobieren.</p>
+
+  <p class="hinweis">Es wird nichts versendet, nichts erhoben, nichts gespeichert.</p>
+
+  <div class="reiter" id="reiter" role="tablist" aria-label="Demo auswählen"></div>
+
+  <div class="kopf">
+    <p id="text"></p>
+    <span class="oeffnen"><a id="oeffnen" href="#" target="_blank" rel="noopener">In eigenem Fenster öffnen ↗</a></span>
+  </div>
+
+  <div class="rahmen" id="rahmen"></div>
+
+  <p class="cta"><a href="https://www.karlsch.at/kontakt">Kostenloses Erstgespräch buchen</a></p>
+  <p class="zurueck">Zurück zu <a href="https://www.karlsch.at">karlsch.at</a></p>
+
+</div>
+
+<script>
+(function(){
+  var BASIS  = 'https://kadez1988.github.io/karlsch-demos/';
+  var QUELLE = 'https://kadez1988.github.io';
+
+  var DEMOS = [
+    { schl:'fd', typ:'ksfd-hoehe', name:'Finance Dashboard', datei:'finance-dashboard.html', hoehe:3200,
+      text:'Umsatz, Marge, Liquidität und Forecast an einem Ort, verknüpft mit den Programmen, mit denen du ohnehin arbeitest. Wie steht mein Unternehmen gerade da — eine Antwort statt fünf Auswertungen.' },
+    { schl:'bot', typ:'ksbot-hoehe', name:'Warn-Bot', datei:'warn-bot.html', hoehe:2950,
+      text:'Ein Dashboard zeigt dir alles — aber nur, wenn du hineinschaust. Der Bot meldet sich von selbst: wenn die Liquidität knapp wird, eine Rechnung die Mahnstufe erreicht, ein Stammkunde plötzlich nicht mehr bestellt oder ein Vertrag sich stillschweigend verlängert. Ab wann er meldet und wer es bekommt, stellst du selbst ein.' },
+    { schl:'rl', typ:'ksrl-hoehe', name:'Rechnungs-Cockpit', datei:'rechnungslegung.html', hoehe:2600,
+      text:'Rechnung schreiben — um den Rest kümmert sich das Programm: Versand an Kunde und Buchhaltung, laufender Abgleich der Zahlungseingänge am Bankkonto, Mahnwesen von der Zahlungserinnerung bis zur letzten Mahnung.' }
+  ];
+
+  var leiste = document.getElementById('reiter');
+  var host   = document.getElementById('rahmen');
+  var textEl = document.getElementById('text');
+  var linkEl = document.getElementById('oeffnen');
+
+  var knoepfe = {};   /* schl -> button            */
+  var frames  = {};   /* schl -> iframe            */
+  var nachTyp = {};   /* postMessage-typ -> iframe */
+
+  DEMOS.forEach(function(d){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = d.name;
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-selected', 'false');
+    b.addEventListener('click', function(){ zeige(d.schl); });
+    leiste.appendChild(b);
+    knoepfe[d.schl] = b;
+  });
+
+  function zeige(schl){
+    DEMOS.forEach(function(d){
+      var aktiv = (d.schl === schl);
+      knoepfe[d.schl].setAttribute('aria-selected', aktiv ? 'true' : 'false');
+
+      if (aktiv){
+        /* Erst beim ersten Anzeigen laden — danach bleibt der Rahmen erhalten,
+           damit der Zustand beim Umschalten nicht verloren geht. */
+        if (!frames[d.schl]){
+          var f = document.createElement('iframe');
+          f.src = BASIS + d.datei;
+          f.title = d.name + ' — Vorschau mit Beispieldaten';
+          f.style.height = d.hoehe + 'px';
+          host.appendChild(f);
+          frames[d.schl] = f;
+          nachTyp[d.typ] = f;
+        }
+        frames[d.schl].style.display = 'block';
+        textEl.textContent = d.text;
+        linkEl.href = BASIS + d.datei;
+      } else if (frames[d.schl]) {
+        frames[d.schl].style.display = 'none';
+      }
+    });
+    melden();
+  }
+
+  /* Die drei Demos melden ihre Hoehe an diese Seite. Nur die eigene Herkunft
+     wird akzeptiert und ausschliesslich eine Zahl ausgewertet. */
+  window.addEventListener('message', function(e){
+    if (e.origin !== QUELLE) return;
+    if (!e.data || !nachTyp[e.data.typ]) return;
+    var h = parseInt(e.data.hoehe, 10);
+    if (h > 200 && h < 40000) nachTyp[e.data.typ].style.height = h + 'px';
+  });
+
+  /* Falls diese Seite selbst eingebettet ist: Gesamthoehe nach oben melden. */
+  var letzte = 0;
+  function melden(){
+    if (window.parent === window) return;
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (Math.abs(h - letzte) < 8) return;
+    letzte = h;
+    window.parent.postMessage({ typ:'ksdemo-hoehe', hoehe:h }, '*');
+  }
+  if (window.ResizeObserver) new ResizeObserver(melden).observe(document.documentElement);
+  window.addEventListener('resize', melden);
+  window.setInterval(melden, 500);
+
+  zeige('fd');
+})();
+</script>
+</body>
+</html>
